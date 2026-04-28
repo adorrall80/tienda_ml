@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados de búsqueda — TiendaMV</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23FFE600'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='20' font-weight='900' fill='%233483FA'>T</text></svg>">
+</head>
+<body>
+
+<!-- ===== MOBILE NAV ===== -->
+<div class="mobile-nav-overlay"></div>
+<nav class="mobile-nav">
+  <div class="mobile-nav-header">
+    <span class="logo">Tienda<span>MV</span></span>
+    <button class="mobile-nav-close">✕</button>
+  </div>
+  <div class="mobile-nav-user">
+    <a href="#">Ingresa a tu cuenta</a>
+    <a href="#">Crea tu cuenta gratis</a>
+  </div>
+  <div class="mobile-nav-list">
+    <a href="#">Electrónica</a><a href="#">Ropa y Moda</a><a href="#">Hogar</a>
+    <a href="#">Deportes</a><a href="#">Automotriz</a><a href="#">Juguetes</a>
+    <a href="#">Inmuebles</a><a href="#">Servicios</a>
+  </div>
+</nav>
+
+<!-- ===== HEADER ===== -->
+<header class="header-top">
+  <div class="container">
+    <button class="mobile-menu-btn">☰</button>
+    <a href="index.html" class="logo">Tienda<span>MV</span></a>
+    <form class="search-form" role="search" action="productos.html" method="get">
+      <select class="search-category" name="cat">
+        <option value="">Todas las categorías</option>
+        <option>Electrónica</option><option>Ropa y Moda</option>
+        <option>Hogar y Jardín</option><option>Deportes</option>
+        <option>Automotriz</option><option>Juguetes</option>
+      </select>
+      <div class="search-input-wrap">
+        <input class="search-input" type="search" name="q" placeholder="Buscar productos, marcas y más…" autocomplete="off">
+        <div class="search-autocomplete"></div>
+      </div>
+      <button class="search-btn" type="submit">🔍</button>
+    </form>
+    <div class="header-actions">
+      <button class="location-btn">📍 <span>Santiago</span></button>
+      <a href="#" class="header-link">Ingresa</a>
+      <a href="#" class="header-link highlight">Crea tu cuenta</a>
+      <a href="#" class="header-link">Vende</a>
+      <a href="carrito.html" class="header-link cart-btn">🛒<span class="cart-count hidden">0</span></a>
+    </div>
+  </div>
+</header>
+
+<nav class="header-nav">
+  <div class="container">
+    <ul class="nav-list">
+      <li><a href="productos.html?cat=electronica">Electrónica</a></li>
+      <li><a href="productos.html?cat=ropa">Ropa</a></li>
+      <li><a href="productos.html?cat=hogar">Hogar</a></li>
+      <li><a href="productos.html?cat=deportes">Deportes</a></li>
+      <li><a href="productos.html?cat=automotriz">Automotriz</a></li>
+      <li><a href="productos.html?cat=juguetes">Juguetes</a></li>
+      <li><a href="productos.html?cat=inmuebles">Inmuebles</a></li>
+      <li><a href="productos.html?cat=servicios">Servicios</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="page-header">
+  <div class="container">
+    <p class="breadcrumb">
+      <a href="index.html">Inicio</a>
+      <span>›</span>
+      <a href="#">Electrónica</a>
+      <span>›</span>
+      Smartphones y Celulares
+    </p>
+    <h1 id="search-heading">Smartphones y Celulares</h1>
+    <p class="results-count">1.847 resultados — <a href="#">Solo con envío gratis</a></p>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main class="container">
+  <div class="listing-layout">
+
+    <!-- ========= SIDEBAR ========= -->
+    <aside class="sidebar" aria-label="Filtros">
+
+      <!-- Categorías -->
+      <div class="filter-box">
+        <h3>Categorías</h3>
+        <div class="filter-option"><label><input type="radio" name="cat" checked> Todos</label></div>
+        <div class="filter-option"><label><input type="radio" name="cat"> Smartphones (1.203)</label></div>
+        <div class="filter-option"><label><input type="radio" name="cat"> Celulares básicos (144)</label></div>
+        <div class="filter-option"><label><input type="radio" name="cat"> Tablets (312)</label></div>
+        <div class="filter-option"><label><input type="radio" name="cat"> Accesorios (2.100)</label></div>
+      </div>
+
+      <!-- Precio -->
+      <div class="filter-box">
+        <h3>Precio</h3>
+        <input type="range" class="range-slider" min="0" max="2000000" step="10000" value="1500000">
+        <div class="price-inputs">
+          <input type="text" class="price-input" id="price-min" placeholder="Mín $" value="$0">
+          <input type="text" class="price-input" id="price-max" placeholder="Máx $" value="$1.500.000">
+        </div>
+        <button class="apply-filter-btn">Aplicar</button>
+      </div>
+
+      <!-- Condición -->
+      <div class="filter-box">
+        <h3>Condición</h3>
+        <div class="filter-option"><label><input type="radio" name="cond" checked> Todos</label></div>
+        <div class="filter-option"><label><input type="radio" name="cond"> Nuevo (1.421)</label></div>
+        <div class="filter-option"><label><input type="radio" name="cond"> Usado (426)</label></div>
+      </div>
+
+      <!-- Envío -->
+      <div class="filter-box">
+        <h3>Envío</h3>
+        <div class="filter-option"><label><input type="checkbox"> Solo con envío gratis</label></div>
+        <div class="filter-option"><label><input type="checkbox"> Retiro en tienda disponible</label></div>
+        <div class="filter-option"><label><input type="checkbox"> Llega hoy</label></div>
+      </div>
+
+      <!-- Ubicación -->
+      <div class="filter-box">
+        <h3>Ubicación del vendedor</h3>
+        <div class="filter-option"><label><input type="radio" name="loc" checked> Todo Chile</label></div>
+        <div class="filter-option"><label><input type="radio" name="loc"> Región Metropolitana (892)</label></div>
+        <div class="filter-option"><label><input type="radio" name="loc"> Valparaíso (231)</label></div>
+        <div class="filter-option"><label><input type="radio" name="loc"> Biobío (156)</label></div>
+        <div class="filter-option"><label><input type="radio" name="loc"> La Araucanía (87)</label></div>
+      </div>
+
+      <!-- Marca -->
+      <div class="filter-box">
+        <h3>Marca</h3>
+        <div class="filter-option"><label><input type="checkbox"> Samsung (512)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> Apple (389)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> Xiaomi (267)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> Motorola (198)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> Huawei (143)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> LG (87)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> Nokia (64)</label></div>
+      </div>
+
+      <!-- RAM -->
+      <div class="filter-box">
+        <h3>Memoria RAM</h3>
+        <div class="filter-option"><label><input type="checkbox"> 4 GB (234)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> 6 GB (421)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> 8 GB (536)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> 12 GB (312)</label></div>
+        <div class="filter-option"><label><input type="checkbox"> 16 GB (89)</label></div>
+      </div>
+
+    </aside>
+
+    <!-- ========= PRODUCT LISTING ========= -->
+    <div>
+
+      <!-- Sort bar -->
+      <div class="sort-bar">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button class="mobile-filter-btn" onclick="document.querySelector('.sidebar').classList.toggle('mobile-open');document.querySelector('.mobile-nav-overlay').classList.toggle('active')" aria-label="Abrir filtros">⚙ Filtros</button>
+          <div class="active-filters">
+            <span class="filter-tag">Electrónica <button aria-label="Quitar filtro">×</button></span>
+            <span class="filter-tag">Envío gratis <button aria-label="Quitar filtro">×</button></span>
+          </div>
+        </div>
+        <div class="flex align-center gap-8">
+          <span class="sort-label">Ordenar por:</span>
+          <select class="sort-select" aria-label="Ordenar resultados">
+            <option>Más relevantes</option>
+            <option>Menor precio</option>
+            <option>Mayor precio</option>
+            <option>Más vendidos</option>
+            <option>Más nuevos</option>
+            <option>Mejor calificación</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="listing-grid" id="listing-grid">
+
+        <!-- Products 1–12 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p1/300/300" alt="Samsung Galaxy S24 Ultra" loading="lazy">
+              <span class="product-badge">-25%</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Samsung Galaxy S24 Ultra 256GB Titanium Black</h3>
+              <p class="product-original-price">$1.599.990</p>
+              <p class="product-price">$1.199.990</p>
+              <p class="product-discount">25% OFF</p>
+              <p class="product-installments">en 24x $49.999 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★★</span><span>(1.243)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p2/300/300" alt="iPhone 15 Pro" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Apple iPhone 15 Pro 256GB Titanio Natural</h3>
+              <p class="product-original-price">$1.299.990</p>
+              <p class="product-price">$1.099.990</p>
+              <p class="product-discount">15% OFF</p>
+              <p class="product-installments">en 24x $45.833 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★★</span><span>(3.891)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p3/300/300" alt="Xiaomi 14 Pro" loading="lazy">
+              <span class="product-badge new">NUEVO</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Xiaomi 14 Pro 512GB 16GB RAM Leica Summilux</h3>
+              <p class="product-original-price">$1.099.990</p>
+              <p class="product-price">$849.990</p>
+              <p class="product-discount">23% OFF</p>
+              <p class="product-installments">en 24x $35.416 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★☆</span><span>(521)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p4/300/300" alt="Motorola Edge 50 Pro" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Motorola Edge 50 Pro 256GB 12GB RAM Hot Pink</h3>
+              <p class="product-original-price">$699.990</p>
+              <p class="product-price">$499.990</p>
+              <p class="product-discount">28% OFF</p>
+              <p class="product-installments">en 12x $41.666 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★☆</span><span>(347)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p5/300/300" alt="Samsung Galaxy A55" loading="lazy">
+              <span class="product-badge">-30%</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Samsung Galaxy A55 5G 256GB 8GB RAM Awesome Navy</h3>
+              <p class="product-original-price">$499.990</p>
+              <p class="product-price">$349.990</p>
+              <p class="product-discount">30% OFF</p>
+              <p class="product-installments">en 12x $29.166 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★★</span><span>(892)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p6/300/300" alt="iPhone 14" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Apple iPhone 14 128GB Azul Medianoche (Reacondicionado)</h3>
+              <p class="product-original-price">$799.990</p>
+              <p class="product-price">$589.990</p>
+              <p class="product-discount">26% OFF</p>
+              <p class="product-installments">en 24x $24.583 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★☆</span><span>(1.456)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p7/300/300" alt="Xiaomi Redmi Note 13 Pro" loading="lazy">
+              <span class="product-badge hot">HOT</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Xiaomi Redmi Note 13 Pro+ 5G 256GB 12GB Midnight Black</h3>
+              <p class="product-original-price">$469.990</p>
+              <p class="product-price">$359.990</p>
+              <p class="product-discount">23% OFF</p>
+              <p class="product-installments">en 12x $29.999 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★★</span><span>(2.134)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p8/300/300" alt="OnePlus 12" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">OnePlus 12 256GB 16GB RAM Flowy Emerald</h3>
+              <p class="product-price">$899.990</p>
+              <p class="product-installments">en 24x $37.499 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★★</span><span>(312)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p9/300/300" alt="Oppo Reno 11 Pro" loading="lazy">
+              <span class="product-badge new">NUEVO</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">OPPO Reno 11 Pro 5G 256GB 12GB RAM Rock Gray</h3>
+              <p class="product-original-price">$599.990</p>
+              <p class="product-price">$449.990</p>
+              <p class="product-discount">25% OFF</p>
+              <p class="product-installments">en 12x $37.499 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★☆</span><span>(187)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p10/300/300" alt="Samsung Galaxy Z Fold 5" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Samsung Galaxy Z Fold 5 256GB Crema</h3>
+              <p class="product-original-price">$2.199.990</p>
+              <p class="product-price">$1.799.990</p>
+              <p class="product-discount">18% OFF</p>
+              <p class="product-installments">en 24x $74.999 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★★</span><span>(423)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p11/300/300" alt="Huawei P60 Pro" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Huawei P60 Pro 256GB 8GB RAM Rococo Pearl</h3>
+              <p class="product-original-price">$899.990</p>
+              <p class="product-price">$699.990</p>
+              <p class="product-discount">22% OFF</p>
+              <p class="product-installments">en 12x $58.332 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★☆</span><span>(267)</span></div>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/p12/300/300" alt="Google Pixel 8 Pro" loading="lazy">
+              <span class="product-badge">-20%</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Google Pixel 8 Pro 256GB Obsidian 7 años actualizaciones</h3>
+              <p class="product-original-price">$1.099.990</p>
+              <p class="product-price">$879.990</p>
+              <p class="product-discount">20% OFF</p>
+              <p class="product-installments">en 24x $36.666 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating"><span class="stars">★★★★★</span><span>(589)</span></div>
+            </div>
+          </a>
+        </article>
+
+      </div><!-- end .listing-grid -->
+
+      <!-- Pagination -->
+      <nav class="pagination" aria-label="Paginación">
+        <button class="page-btn disabled" aria-label="Página anterior">‹</button>
+        <button class="page-btn active" aria-current="page">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn">5</button>
+        <span style="padding:0 4px;color:var(--text-muted)">…</span>
+        <button class="page-btn">48</button>
+        <button class="page-btn" aria-label="Siguiente página">›</button>
+      </nav>
+
+    </div><!-- end product col -->
+  </div><!-- end .listing-layout -->
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-top">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>Sobre TiendaMV</h4>
+          <ul><li><a href="#">Acerca de nosotros</a></li><li><a href="#">Trabaja con nosotros</a></li><li><a href="#">Inversionistas</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h4>Información</h4>
+          <ul><li><a href="#">Centro de ayuda</a></li><li><a href="#">Cómo comprar</a></li><li><a href="#">Cómo vender</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h4>Servicios</h4>
+          <ul><li><a href="#">TiendaMV Pago</a></li><li><a href="#">TiendaMV Envíos</a></li><li><a href="#">Publicidad</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h4>Mi cuenta</h4>
+          <ul><li><a href="#">Mis pedidos</a></li><li><a href="#">Mis publicaciones</a></li><li><a href="#">Mis favoritos</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h4>Descarga la app</h4>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="#" class="app-badge"><span class="store-icon">🍎</span><div class="store-text"><small>Descarga en</small><strong>App Store</strong></div></a>
+            <a href="#" class="app-badge"><span class="store-icon">▶</span><div class="store-text"><small>Disponible en</small><strong>Google Play</strong></div></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="footer-bottom">
+      <p>© 2025 TiendaMV S.A. — <a href="#">Términos y condiciones</a> | <a href="#">Privacidad</a></p>
+      <div class="payment-logos">
+        <span class="payment-logo">VISA</span><span class="payment-logo">Mastercard</span>
+        <span class="payment-logo">Webpay</span><span class="payment-logo">Redcompra</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast-container"></div>
+<script src="js/main.js"></script>
+</body>
+</html>
