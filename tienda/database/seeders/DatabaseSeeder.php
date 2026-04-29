@@ -7,14 +7,53 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Tag;
+use App\Models\Tienda;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create(['name' => 'Admin', 'email' => 'admin@tiendamv.cl']);
+        // ── Roles ─────────────────────────────────────────────────────
+        $roleAdmin    = Role::create(['name' => 'admin']);
+        $roleVendedor = Role::create(['name' => 'vendedor']);
+        Role::create(['name' => 'cliente']);
+
+        // ── Usuarios ──────────────────────────────────────────────────
+        $admin = User::create([
+            'name'     => 'Admin',
+            'email'    => 'admin@tiendamv.cl',
+            'password' => bcrypt('admin1234'),
+            'email_verified_at' => now(),
+        ]);
+        $admin->assignRole($roleAdmin);
+
+        $vendedor = User::create([
+            'name'     => 'Vendedor Demo',
+            'email'    => 'vendedor@tiendamv.cl',
+            'password' => bcrypt('vendedor1234'),
+            'email_verified_at' => now(),
+        ]);
+        $vendedor->assignRole($roleVendedor);
+
+        $cliente = User::create([
+            'name'     => 'Cliente Demo',
+            'email'    => 'cliente@tiendamv.cl',
+            'password' => bcrypt('cliente1234'),
+            'email_verified_at' => now(),
+        ]);
+        $cliente->assignRole('cliente');
+
+        // ── Tienda oficial (del admin) ────────────────────────────────
+        $tiendaOficial = Tienda::create([
+            'user_id'     => $admin->id,
+            'nombre'      => 'TiendaMV Oficial',
+            'slug'        => 'tiendamv-oficial',
+            'descripcion' => 'Tienda oficial de TiendaMV con los mejores productos.',
+            'activa'      => true,
+        ]);
 
         // ── Tags ──────────────────────────────────────────────────────
         $oferta     = Tag::create(['nombre' => 'Oferta del día', 'slug' => 'oferta',      'label' => 'Oferta', 'color' => 'orange']);
@@ -54,7 +93,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($ofertas as $data) {
-            $p = Product::create(array_merge($data, ['descripcion' => $data['nombre'] . '.']));
+            $p = Product::create(array_merge($data, ['descripcion' => $data['nombre'] . '.', 'tienda_id' => $tiendaOficial->id]));
             $p->tags()->attach([$oferta->id]);
             $this->addExtraImages($p, $data['imagen']);
         }
@@ -71,7 +110,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($masVendidosData as $data) {
-            $p = Product::create(array_merge($data, ['descripcion' => $data['nombre'] . '.']));
+            $p = Product::create(array_merge($data, ['descripcion' => $data['nombre'] . '.', 'tienda_id' => $tiendaOficial->id]));
             $p->tags()->attach([$masVendido->id]);
             $this->addExtraImages($p, $data['imagen']);
         }

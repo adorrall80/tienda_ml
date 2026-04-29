@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     protected $fillable = [
-        'category_id', 'nombre', 'slug', 'descripcion',
+        'category_id', 'tienda_id', 'nombre', 'slug', 'descripcion',
         'precio', 'precio_original', 'stock', 'imagen',
-        'envio_gratis', 'cuotas', 'rating', 'rating_count', 'activo',
+        'envio_gratis', 'cuotas', 'rating', 'rating_count', 'activo', 'estado',
     ];
+
+    const ESTADOS = ['nuevo' => 'Nuevo', 'usado' => 'Usado', 'reacondicionado' => 'Reacondicionado'];
 
     protected $casts = [
         'envio_gratis' => 'boolean',
@@ -30,6 +32,11 @@ class Product extends Model
     public function images()
     {
         return $this->hasMany(ProductImage::class)->orderBy('orden');
+    }
+
+    public function tienda()
+    {
+        return $this->belongsTo(Tienda::class);
     }
 
     public function scopeActivos($query)

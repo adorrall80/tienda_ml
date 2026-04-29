@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/shop.css',
                 'resources/js/shop.js',
+                'resources/css/panel.css',
             ],
             refresh: true,
         }),

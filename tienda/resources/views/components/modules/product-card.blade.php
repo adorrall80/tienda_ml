@@ -4,12 +4,13 @@
     $tags    = $producto->relationLoaded('tags') ? $producto->tags : collect();
     $isNuevo = $tags->contains('slug', 'nuevo');
     $isHot   = $tags->contains('slug', 'hot');
-    $imagen  = $producto->imagen ?? 'https://picsum.photos/seed/' . $producto->slug . '/300/300';
-    $precio  = '$' . number_format($producto->precio, 0, ',', '.');
+    $precio  = $producto->precio !== null
+                 ? '$' . number_format($producto->precio, 0, ',', '.')
+                 : 'Regalo';
     $orig    = $producto->precio_original
                  ? '$' . number_format($producto->precio_original, 0, ',', '.')
                  : null;
-    $cuota   = ($producto->cuotas && $producto->cuotas > 1)
+    $cuota   = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null)
                  ? '$' . number_format($producto->precio / $producto->cuotas, 0, ',', '.')
                  : null;
     $stars   = str_repeat('★', (int) round($producto->rating))
@@ -19,7 +20,14 @@
 <article class="product-card">
     <a href="{{ route('productos.show', $producto->slug) }}">
         <div class="product-img-wrap">
-            <img src="{{ $imagen }}" alt="{{ $producto->nombre }}" loading="lazy">
+            @if($producto->imagen)
+                <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}" loading="lazy">
+            @else
+                <div class="no-img-placeholder">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    <span>Sin imagen</span>
+                </div>
+            @endif
             @if($isNuevo)
                 <span class="product-badge new">NUEVO</span>
             @elseif($isHot)
@@ -29,11 +37,20 @@
             @endif
         </div>
         <div class="product-info">
+            @if($producto->estado)
+                <span class="product-estado product-estado--{{ $producto->estado }}">
+                    Estado: {{ \App\Models\Product::ESTADOS[$producto->estado] }}
+                </span>
+            @endif
             <h3 class="product-title">{{ $producto->nombre }}</h3>
             @if($orig)
                 <p class="product-original-price">{{ $orig }}</p>
             @endif
-            <p class="product-price">{{ $precio }}</p>
+            @if($producto->precio === null)
+                <p class="product-price"><span class="price-regalo">¡Se regala!</span></p>
+            @else
+                <p class="product-price">{{ $precio }}</p>
+            @endif
             @if($desc)
                 <p class="product-discount">{{ $desc }}% OFF</p>
             @endif

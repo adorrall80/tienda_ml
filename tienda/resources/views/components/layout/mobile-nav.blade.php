@@ -9,7 +9,7 @@
             <a href="{{ route('login') }}">Ingresa a tu cuenta</a>
             <a href="{{ route('register') }}">Crea tu cuenta gratis</a>
         @else
-            <a href="{{ route('dashboard') }}">{{ Auth::user()->name }}</a>
+            <a href="{{ route('cuenta.perfil') }}">{{ Auth::user()->name }}</a>
         @endguest
     </div>
     <div class="mobile-nav-list">

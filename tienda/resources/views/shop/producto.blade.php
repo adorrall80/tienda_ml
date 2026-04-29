@@ -14,15 +14,13 @@
     foreach ($producto->images as $img) {
         $galeria->push(['thumb' => $toThumb($img->imagen), 'full' => $toFull($img->imagen), 'alt' => $producto->nombre]);
     }
-    if ($galeria->isEmpty()) {
-        $url = "https://picsum.photos/seed/{$producto->slug}/300/300";
-        $galeria->push(['thumb' => $toThumb($url), 'full' => $toFull($url), 'alt' => $producto->nombre]);
-    }
-    $galeria = $galeria->values()->all();
+    $galeria  = $galeria->values()->all();
     $desc     = $producto->porcentaje_descuento;
-    $precio   = '$' . number_format($producto->precio, 0, ',', '.');
+    $precio   = $producto->precio !== null
+                  ? '$' . number_format($producto->precio, 0, ',', '.')
+                  : 'Regalo';
     $orig     = $producto->precio_original ? '$' . number_format($producto->precio_original, 0, ',', '.') : null;
-    $cuota    = ($producto->cuotas && $producto->cuotas > 1)
+    $cuota    = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null)
                   ? '$' . number_format($producto->precio / $producto->cuotas, 0, ',', '.')
                   : null;
     $stars    = str_repeat('★', (int) round($producto->rating)) . str_repeat('☆', 5 - (int) round($producto->rating));
@@ -50,24 +48,36 @@
 
                 {{-- Galería --}}
                 <div class="gallery">
-                    <div class="thumbnails">
-                        @foreach($galeria as $i => $img)
-                            <div class="thumbnail {{ $i === 0 ? 'active' : '' }}" data-full="{{ $img['full'] }}">
-                                <img src="{{ $img['thumb'] }}" alt="{{ $img['alt'] }}" loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="main-image-wrap" title="Haz clic para zoom">
-                        <img class="gallery-main"
-                             src="{{ $galeria[0]['full'] }}"
-                             alt="{{ $producto->nombre }}"
-                             id="main-product-img">
-                    </div>
+                    @if(count($galeria) > 0)
+                        <div class="thumbnails">
+                            @foreach($galeria as $i => $img)
+                                <div class="thumbnail {{ $i === 0 ? 'active' : '' }}" data-full="{{ $img['full'] }}">
+                                    <img src="{{ $img['thumb'] }}" alt="{{ $img['alt'] }}" loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="main-image-wrap" title="Haz clic para zoom">
+                            <img class="gallery-main"
+                                 src="{{ $galeria[0]['full'] }}"
+                                 alt="{{ $producto->nombre }}"
+                                 id="main-product-img">
+                        </div>
+                    @else
+                        <div class="no-img-placeholder-lg">
+                            <svg width="80" height="80" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                            <span>Sin imagen</span>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Info --}}
                 <p class="detail-condition">
-                    Nuevo | <span>+500 vendidos</span> |
+                    @if($producto->estado)
+                        <span class="detail-estado detail-estado--{{ $producto->estado }}">
+                            Estado: {{ \App\Models\Product::ESTADOS[$producto->estado] }}
+                        </span>
+                        |
+                    @endif
                     <a href="#">Reportar</a>
                 </p>
 
@@ -84,9 +94,13 @@
                     <p class="detail-original">{{ $orig }}</p>
                 @endif
                 <p class="detail-price">
-                    {{ $precio }}
-                    @if($desc)
-                        <span class="detail-discount-badge">{{ $desc }}% OFF</span>
+                    @if($producto->precio === null)
+                        <span class="price-regalo">¡Se regala!</span>
+                    @else
+                        {{ $precio }}
+                        @if($desc)
+                            <span class="detail-discount-badge">{{ $desc }}% OFF</span>
+                        @endif
                     @endif
                 </p>
                 @if($cuota)

@@ -214,6 +214,26 @@ function initTabs() {
   });
 }
 
+/* ── User menu dropdown ── */
+function initUserMenu() {
+  const menu = document.getElementById('userMenu');
+  const btn  = document.getElementById('userMenuBtn');
+  if (!menu || !btn) return;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', isOpen);
+  });
+
+  document.addEventListener('click', e => {
+    if (!menu.contains(e.target)) {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
+
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
   Cart.updateCounter();
@@ -225,4 +245,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initListingFilters();
   initGallery();
+  initUserMenu();
 });
