@@ -3,6 +3,7 @@
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 const fmtCLP = n => '$' + Number(n).toLocaleString('es-CL');
+const fmtCartPrice = n => Number(n) > 0 ? fmtCLP(n) : 'Se regala';
 
 /* ── Toast ── */
 function showToast(msg, type = 'success', dur = 3000) {
@@ -33,12 +34,12 @@ const Cart = {
     this.save(items); this.updateCounter();
     showToast('Producto agregado al carrito ✓');
   },
-  remove(id) { this.save(this.getAll().filter(i => i.id !== id)); this.updateCounter(); },
+  remove(id) { this.save(this.getAll().filter(i => i.id !== id)); this.updateCounter(); this.renderPage(); },
   updateQty(id, qty) {
     const items = this.getAll();
     const idx = items.findIndex(i => i.id === id);
     if (idx > -1) { if (qty < 1) { this.remove(id); return; } items[idx].qty = qty; this.save(items); }
-    this.updateCounter();
+    this.updateCounter(); this.renderPage();
   },
   count() { return this.getAll().reduce((s, i) => s + (i.qty || 1), 0); },
   total() { return this.getAll().reduce((s, i) => s + i.price * (i.qty || 1), 0); },
@@ -48,6 +49,81 @@ const Cart = {
     const n = this.count();
     badge.textContent = n;
     badge.classList.toggle('hidden', n === 0);
+  },
+  clear() {
+    this.save([]);
+    this.updateCounter();
+    this.renderPage();
+  },
+  renderPage() {
+    const page = $('[data-cart-page]');
+    if (!page) return;
+
+    const items = this.getAll();
+    const empty = $('[data-cart-empty]');
+    const list = $('[data-cart-list]');
+    const summary = $('[data-cart-summary]');
+    const countText = $('[data-cart-page-count]');
+    const summaryCount = $('[data-cart-summary-count]');
+    const summarySubtotal = $('[data-cart-summary-subtotal]');
+    const summaryTotal = $('[data-cart-summary-total]');
+
+    const count = this.count();
+    const total = this.total();
+    if (countText) countText.textContent = count === 1 ? '1 producto agregado' : `${count} productos agregados`;
+
+    if (!items.length) {
+      empty.hidden = false;
+      summary.hidden = true;
+      list.innerHTML = '';
+      if (countText) countText.textContent = 'Sin productos agregados';
+      return;
+    }
+
+    empty.hidden = true;
+    summary.hidden = false;
+    if (summaryCount) summaryCount.textContent = count;
+    if (summarySubtotal) summarySubtotal.textContent = fmtCartPrice(total);
+    if (summaryTotal) summaryTotal.textContent = fmtCartPrice(total);
+
+    list.innerHTML = items.map(item => {
+      const price = Number(item.price) || 0;
+      const qty = Number(item.qty) || 1;
+      const lineTotal = price * qty;
+      const productUrl = item.slug ? `/productos/${item.slug}` : '/productos';
+      return `
+        <article class="cart-item" data-cart-item="${item.id}">
+          <a class="cart-item-img" href="${productUrl}">
+            ${item.img ? `<img src="${item.img}" alt="${item.title}">` : '<span>Sin imagen</span>'}
+          </a>
+          <div class="cart-item-info">
+            <a class="cart-item-title" href="${productUrl}">${item.title}</a>
+            <p class="cart-item-meta">Envío gratis disponible</p>
+            <button class="cart-remove" type="button" data-cart-remove="${item.id}">Eliminar</button>
+          </div>
+          <div class="cart-item-actions">
+            <div class="cart-qty">
+              <button type="button" data-cart-dec="${item.id}" aria-label="Disminuir cantidad">−</button>
+              <input type="number" min="1" value="${qty}" data-cart-qty="${item.id}" aria-label="Cantidad">
+              <button type="button" data-cart-inc="${item.id}" aria-label="Aumentar cantidad">+</button>
+            </div>
+            <strong>${fmtCartPrice(lineTotal)}</strong>
+          </div>
+        </article>`;
+    }).join('');
+
+    $$('[data-cart-remove]').forEach(btn => btn.addEventListener('click', () => this.remove(btn.dataset.cartRemove)));
+    $$('[data-cart-dec]').forEach(btn => btn.addEventListener('click', () => {
+      const current = items.find(i => i.id === btn.dataset.cartDec);
+      this.updateQty(btn.dataset.cartDec, (Number(current?.qty) || 1) - 1);
+    }));
+    $$('[data-cart-inc]').forEach(btn => btn.addEventListener('click', () => {
+      const current = items.find(i => i.id === btn.dataset.cartInc);
+      this.updateQty(btn.dataset.cartInc, (Number(current?.qty) || 1) + 1);
+    }));
+    $$('[data-cart-qty]').forEach(input => input.addEventListener('change', () => {
+      this.updateQty(input.dataset.cartQty, Math.max(1, Number(input.value) || 1));
+    }));
   }
 };
 
@@ -165,9 +241,25 @@ function initAddToCart() {
       const title = btn.dataset.title || 'Producto';
       const price = parseInt(btn.dataset.price) || 0;
       const img   = btn.dataset.img   || '';
-      const qtyEl = btn.closest('.product-actions')?.querySelector('.qty-input');
-      Cart.add({ id, title, price, img, qty: qtyEl ? parseInt(qtyEl.value) : 1 });
+      const slug  = btn.dataset.slug  || '';
+      const scope = btn.closest('.product-main-col, .product-side-col, .product-detail-layout') || document;
+      const qtyEl = scope.querySelector('.quantity-section .qty-input');
+      Cart.add({ id, title, price, img, slug, qty: qtyEl ? parseInt(qtyEl.value) : 1 });
+      if (btn.dataset.cartRedirect === 'true') {
+        window.location.href = btn.dataset.cartUrl || '/carrito';
+      }
     });
+  });
+}
+
+function initCartPage() {
+  Cart.renderPage();
+  $('[data-cart-clear]')?.addEventListener('click', () => {
+    Cart.clear();
+    showToast('Carrito vaciado');
+  });
+  $('[data-cart-checkout]')?.addEventListener('click', () => {
+    showToast('El pago se implementará en el siguiente paso', 'info');
   });
 }
 
@@ -246,4 +338,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initListingFilters();
   initGallery();
   initUserMenu();
+  initCartPage();
 });

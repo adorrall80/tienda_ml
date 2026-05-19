@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('inicio');
 Route::get('/productos', [ProductsController::class, 'index'])->name('productos.index');
 Route::get('/productos/{slug}', [ProductsController::class, 'show'])->name('productos.show');
-Route::get('/carrito', fn() => abort(404))->name('carrito.index');
+Route::view('/carrito', 'shop.carrito')->name('carrito.index');
 Route::get('/buscar/sugerencias', fn() => response()->json([]))->name('buscar.sugerencias');
 
 // ── Post-login redirect por rol ───────────────────────────────

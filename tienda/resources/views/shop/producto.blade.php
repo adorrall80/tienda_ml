@@ -16,11 +16,11 @@
     }
     $galeria  = $galeria->values()->all();
     $desc     = $producto->porcentaje_descuento;
-    $precio   = $producto->precio !== null
+    $precio   = $producto->precio !== null && $producto->precio > 0
                   ? '$' . number_format($producto->precio, 0, ',', '.')
-                  : 'Regalo';
+                  : 'Se regala';
     $orig     = $producto->precio_original ? '$' . number_format($producto->precio_original, 0, ',', '.') : null;
-    $cuota    = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null)
+    $cuota    = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null && $producto->precio > 0)
                   ? '$' . number_format($producto->precio / $producto->cuotas, 0, ',', '.')
                   : null;
     $stars    = str_repeat('★', (int) round($producto->rating)) . str_repeat('☆', 5 - (int) round($producto->rating));
@@ -94,7 +94,7 @@
                     <p class="detail-original">{{ $orig }}</p>
                 @endif
                 <p class="detail-price">
-                    @if($producto->precio === null)
+                    @if($producto->precio === null || $producto->precio <= 0)
                         <span class="price-regalo">¡Se regala!</span>
                     @else
                         {{ $precio }}
@@ -138,11 +138,13 @@
                 <div class="buy-buttons product-actions">
                     <button class="btn-buy-now"
                             data-add-cart
+                            data-cart-redirect="true"
                             data-id="{{ $producto->id }}"
                             data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
                             data-price="{{ $producto->precio }}"
                             data-img="{{ $producto->imagen }}"
-                            onclick="this.dataset.addCart; window.location.href='{{ route('carrito.index') }}'">
+                            data-slug="{{ $producto->slug }}"
+                            data-cart-url="{{ route('carrito.index') }}">
                         Comprar ahora
                     </button>
                     <button class="btn-add-cart"
@@ -150,7 +152,8 @@
                             data-id="{{ $producto->id }}"
                             data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
                             data-price="{{ $producto->precio }}"
-                            data-img="{{ $producto->imagen }}">
+                            data-img="{{ $producto->imagen }}"
+                            data-slug="{{ $producto->slug }}">
                         Agregar al carrito
                     </button>
                 </div>
@@ -356,7 +359,14 @@
 
                 <div class="buy-buttons product-actions" style="margin-top:14px;">
                     <button class="btn-buy-now"
-                            onclick="window.location.href='{{ route('carrito.index') }}'">
+                            data-add-cart
+                            data-cart-redirect="true"
+                            data-id="{{ $producto->id }}"
+                            data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
+                            data-price="{{ $producto->precio }}"
+                            data-img="{{ $producto->imagen }}"
+                            data-slug="{{ $producto->slug }}"
+                            data-cart-url="{{ route('carrito.index') }}">
                         Comprar ahora
                     </button>
                     <button class="btn-add-cart"
@@ -364,7 +374,8 @@
                             data-id="{{ $producto->id }}"
                             data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
                             data-price="{{ $producto->precio }}"
-                            data-img="{{ $producto->imagen }}">
+                            data-img="{{ $producto->imagen }}"
+                            data-slug="{{ $producto->slug }}">
                         Agregar al carrito
                     </button>
                 </div>
@@ -416,7 +427,15 @@
         @if($orig)<span class="sticky-original">{{ $orig }}</span>@endif
         <span class="sticky-price">{{ $precio }}</span>
     </div>
-    <button class="sticky-buy-btn" onclick="window.location.href='{{ route('carrito.index') }}'">
+    <button class="sticky-buy-btn"
+            data-add-cart
+            data-cart-redirect="true"
+            data-id="{{ $producto->id }}"
+            data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
+            data-price="{{ $producto->precio }}"
+            data-img="{{ $producto->imagen }}"
+            data-slug="{{ $producto->slug }}"
+            data-cart-url="{{ route('carrito.index') }}">
         Comprar ahora
     </button>
 </div>

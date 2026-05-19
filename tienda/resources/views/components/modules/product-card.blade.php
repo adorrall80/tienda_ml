@@ -4,13 +4,13 @@
     $tags    = $producto->relationLoaded('tags') ? $producto->tags : collect();
     $isNuevo = $tags->contains('slug', 'nuevo');
     $isHot   = $tags->contains('slug', 'hot');
-    $precio  = $producto->precio !== null
+    $precio  = $producto->precio !== null && $producto->precio > 0
                  ? '$' . number_format($producto->precio, 0, ',', '.')
-                 : 'Regalo';
+                 : 'Se regala';
     $orig    = $producto->precio_original
                  ? '$' . number_format($producto->precio_original, 0, ',', '.')
                  : null;
-    $cuota   = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null)
+    $cuota   = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null && $producto->precio > 0)
                  ? '$' . number_format($producto->precio / $producto->cuotas, 0, ',', '.')
                  : null;
     $stars   = str_repeat('★', (int) round($producto->rating))
@@ -46,7 +46,7 @@
             @if($orig)
                 <p class="product-original-price">{{ $orig }}</p>
             @endif
-            @if($producto->precio === null)
+            @if($producto->precio === null || $producto->precio <= 0)
                 <p class="product-price"><span class="price-regalo">¡Se regala!</span></p>
             @else
                 <p class="product-price">{{ $precio }}</p>
