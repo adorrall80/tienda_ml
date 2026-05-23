@@ -5,11 +5,50 @@ namespace App\Http\Controllers\Vendedor;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Rules\NoReservedAttackWords;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductoController extends Controller
 {
+    private function normalizePriceInputs(Request $request): void
+    {
+        foreach (['precio', 'precio_oferta'] as $field) {
+            if (! $request->has($field)) {
+                continue;
+            }
+
+            $value = trim((string) $request->input($field));
+
+            $request->merge([
+                $field => $value === '' ? null : str_replace('.', '', $value),
+            ]);
+        }
+    }
+
+    private function normalizeDescriptionHtml(Request $request): void
+    {
+        if (! $request->has('descripcion')) {
+            return;
+        }
+
+        $html = trim((string) $request->input('descripcion'));
+
+        $request->merge([
+            'descripcion' => $html === '' ? null : $this->sanitizeBasicHtml($html),
+        ]);
+    }
+
+    private function sanitizeBasicHtml(string $html): string
+    {
+        $html = preg_replace('/<(script|style|iframe)\b[^>]*>.*?<\/\1>/is', '', $html);
+        $html = strip_tags($html, '<p><br><strong><b><em><i><u><ul><ol><li>');
+        $html = preg_replace('/<([a-z][a-z0-9]*)\b[^>]*>/i', '<$1>', $html);
+
+        return trim($html);
+    }
+
     private function tienda(Request $request)
     {
         return $request->user()->tienda;
@@ -20,7 +59,7 @@ class ProductoController extends Controller
         $tienda = $this->tienda($request);
 
         if (! $tienda) {
-            return redirect()->route('vendedor.dashboard')->with('warning', 'Primero crea tu tienda.');
+            return redirect()->route('vendedor.panel')->with('warning', 'Primero crea tu tienda.');
         }
 
         $productos = $tienda->productos()->with('category')->latest()->paginate(20);
@@ -33,7 +72,7 @@ class ProductoController extends Controller
         $tienda = $this->tienda($request);
 
         if (! $tienda) {
-            return redirect()->route('vendedor.dashboard')->with('warning', 'Primero crea tu tienda.');
+            return redirect()->route('vendedor.panel')->with('warning', 'Primero crea tu tienda.');
         }
 
         $categorias = Category::orderBy('orden')->get();
@@ -43,34 +82,39 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizePriceInputs($request);
+        $this->normalizeDescriptionHtml($request);
+
         $tienda = $this->tienda($request);
 
         if (! $tienda) {
-            return redirect()->route('vendedor.dashboard');
+            return redirect()->route('vendedor.panel');
         }
 
         $data = $request->validate([
-            'nombre'          => 'required|string|max:255',
-            'descripcion'     => 'nullable|string',
+            'nombre'          => ['required', 'string', 'max:255', new NoReservedAttackWords],
+            'sku'             => ['nullable', 'string', 'max:50', new NoReservedAttackWords],
+            'descripcion_corta' => ['nullable', 'string', 'max:180', new NoReservedAttackWords],
+            'descripcion'     => ['nullable', 'string', new NoReservedAttackWords],
             'category_id'     => 'required|exists:categories,id',
-            'precio'          => 'nullable|numeric|min:0',
-            'precio_original' => 'nullable|numeric|min:0',
+            'precio'          => 'nullable|integer|min:0',
+            'precio_oferta'   => 'nullable|integer|min:0',
             'stock'           => 'required|integer|min:0',
-            'imagen'          => 'nullable|url|max:500',
+            'imagen_archivo'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'envio_gratis'    => 'boolean',
-            'cuotas'          => 'nullable|integer|min:1',
             'estado'          => 'required|in:nuevo,usado,reacondicionado',
         ]);
 
         $data['tienda_id']    = $tienda->id;
         $data['activo']       = true;
         $data['envio_gratis'] = $request->boolean('envio_gratis');
-        if (empty($data['precio'])) {
-            $data['precio_original'] = null;
-        } elseif ($data['precio'] == 0) {
-            $data['precio_original'] = 0;
+        if (($data['precio_oferta'] ?? null) !== null && ($data['precio'] ?? null) !== null && $data['precio_oferta'] > $data['precio']) {
+            return back()->withErrors(['precio_oferta' => 'El precio oferta no puede ser mayor al precio normal.'])->withInput();
         }
-
+        if ($request->hasFile('imagen_archivo')) {
+            $data['imagen'] = Storage::url($request->file('imagen_archivo')->store('products', 'public'));
+        }
+        unset($data['imagen_archivo']);
         $base = Str::slug($data['nombre']);
         $data['slug'] = $base;
         $n = 1;
@@ -96,32 +140,37 @@ class ProductoController extends Controller
 
     public function update(Request $request, Product $producto)
     {
+        $this->normalizePriceInputs($request);
+        $this->normalizeDescriptionHtml($request);
+
         $tienda = $this->tienda($request);
 
         abort_if($producto->tienda_id !== $tienda?->id, 403);
 
         $data = $request->validate([
-            'nombre'          => 'required|string|max:255',
-            'descripcion'     => 'nullable|string',
+            'nombre'          => ['required', 'string', 'max:255', new NoReservedAttackWords],
+            'sku'             => ['nullable', 'string', 'max:50', new NoReservedAttackWords],
+            'descripcion_corta' => ['nullable', 'string', 'max:180', new NoReservedAttackWords],
+            'descripcion'     => ['nullable', 'string', new NoReservedAttackWords],
             'category_id'     => 'required|exists:categories,id',
-            'precio'          => 'nullable|numeric|min:0',
-            'precio_original' => 'nullable|numeric|min:0',
+            'precio'          => 'nullable|integer|min:0',
+            'precio_oferta'   => 'nullable|integer|min:0',
             'stock'           => 'required|integer|min:0',
-            'imagen'          => 'nullable|url|max:500',
+            'imagen_archivo'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'envio_gratis'    => 'boolean',
-            'cuotas'          => 'nullable|integer|min:1',
             'activo'          => 'boolean',
             'estado'          => 'required|in:nuevo,usado,reacondicionado',
         ]);
 
         $data['envio_gratis'] = $request->boolean('envio_gratis');
         $data['activo']       = $request->boolean('activo');
-        if (empty($data['precio'])) {
-            $data['precio_original'] = null;
-        } elseif ($data['precio'] == 0) {
-            $data['precio_original'] = 0;
+        if (($data['precio_oferta'] ?? null) !== null && ($data['precio'] ?? null) !== null && $data['precio_oferta'] > $data['precio']) {
+            return back()->withErrors(['precio_oferta' => 'El precio oferta no puede ser mayor al precio normal.'])->withInput();
         }
-
+        if ($request->hasFile('imagen_archivo')) {
+            $data['imagen'] = Storage::url($request->file('imagen_archivo')->store('products', 'public'));
+        }
+        unset($data['imagen_archivo']);
         $producto->update($data);
 
         return redirect()->route('vendedor.productos.index')->with('success', 'Producto actualizado.');

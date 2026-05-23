@@ -6,7 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tienda extends Model
 {
-    protected $fillable = ['user_id', 'nombre', 'slug', 'descripcion', 'logo', 'activa'];
+    protected $fillable = [
+        'user_id',
+        'nombre',
+        'slug',
+        'descripcion',
+        'contacto_email',
+        'contacto_telefono',
+        'contacto_whatsapp',
+        'contacto_direccion',
+        'logo',
+        'activa',
+    ];
 
     protected $casts = ['activa' => 'boolean'];
 
@@ -18,5 +29,10 @@ class Tienda extends Model
     public function productos()
     {
         return $this->hasMany(Product::class, 'tienda_id');
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'tienda_id');
     }
 }

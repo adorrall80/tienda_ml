@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class ProfileController extends Controller
 {
@@ -16,8 +18,15 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $orders = $request->user()
+            ->orders()
+            ->with('items.tienda')
+            ->latest()
+            ->get();
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'orders' => $orders,
         ]);
     }
 
@@ -35,6 +44,35 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('cuenta.perfil')->with('status', 'profile-updated');
+    }
+
+    public function becomeSeller(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        Role::firstOrCreate(['name' => 'cliente']);
+        $sellerRole = Role::firstOrCreate(['name' => 'vendedor']);
+
+        if (! $user->hasRole('cliente')) {
+            $user->assignRole('cliente');
+        }
+
+        if (! $user->hasRole('vendedor')) {
+            $user->assignRole($sellerRole);
+        }
+
+        return $user->tienda
+            ? Redirect::route('vendedor.panel')->with('success', 'Ya puedes vender con tu tienda.')
+            : Redirect::route('vendedor.tienda.create')->with('success', 'Ya eres vendedor. Crea tu tienda para publicar productos.');
+    }
+
+    public function showOrder(Request $request, Order $order): View
+    {
+        abort_unless($order->user_id === $request->user()->id, 404);
+
+        $order->load('items.tienda.user', 'statusHistories.user');
+
+        return view('profile.order-show', compact('order'));
     }
 
     /**

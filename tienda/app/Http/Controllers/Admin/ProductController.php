@@ -6,18 +6,65 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Tienda;
+use App\Rules\NoReservedAttackWords;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    private function normalizePriceInputs(Request $request): void
+    {
+        foreach (['precio', 'precio_oferta'] as $field) {
+            if (! $request->has($field)) {
+                continue;
+            }
+
+            $value = trim((string) $request->input($field));
+
+            $request->merge([
+                $field => $value === '' ? null : str_replace('.', '', $value),
+            ]);
+        }
+    }
+
+    private function normalizeDescriptionHtml(Request $request): void
+    {
+        if (! $request->has('descripcion')) {
+            return;
+        }
+
+        $html = trim((string) $request->input('descripcion'));
+
+        $request->merge([
+            'descripcion' => $html === '' ? null : $this->sanitizeBasicHtml($html),
+        ]);
+    }
+
+    private function sanitizeBasicHtml(string $html): string
+    {
+        $html = preg_replace('/<(script|style|iframe)\b[^>]*>.*?<\/\1>/is', '', $html);
+        $html = strip_tags($html, '<p><br><strong><b><em><i><u><ul><ol><li>');
+        $html = preg_replace('/<([a-z][a-z0-9]*)\b[^>]*>/i', '<$1>', $html);
+
+        return trim($html);
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('q');
 
         $productos = Product::with(['category', 'tienda'])
-            ->when($search, fn($q) => $q->where('nombre', 'like', "%$search%")
-                                        ->orWhere('slug', 'like', "%$search%"))
+            ->when($search, function ($query) use ($search) {
+                $term = '%' . $search . '%';
+
+                $query->where(function ($q) use ($term) {
+                    $q->where('nombre', 'like', $term)
+                        ->orWhere('slug', 'like', $term)
+                        ->orWhere('descripcion_corta', 'like', $term)
+                        ->orWhere('descripcion', 'like', $term);
+                });
+            })
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -35,17 +82,21 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizePriceInputs($request);
+        $this->normalizeDescriptionHtml($request);
+
         $data = $request->validate([
-            'nombre'          => 'required|string|max:255',
-            'descripcion'     => 'nullable|string',
+            'nombre'          => ['required', 'string', 'max:255', new NoReservedAttackWords],
+            'sku'             => ['nullable', 'string', 'max:50', new NoReservedAttackWords],
+            'descripcion_corta' => ['nullable', 'string', 'max:180', new NoReservedAttackWords],
+            'descripcion'     => ['nullable', 'string', new NoReservedAttackWords],
             'category_id'     => 'required|exists:categories,id',
             'tienda_id'       => 'required|exists:tiendas,id',
-            'precio'          => 'nullable|numeric|min:0',
-            'precio_original' => 'nullable|numeric|min:0',
+            'precio'          => 'nullable|integer|min:0',
+            'precio_oferta'   => 'nullable|integer|min:0',
             'stock'           => 'required|integer|min:0',
-            'imagen'          => 'nullable|url|max:500',
+            'imagen_archivo'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'envio_gratis'    => 'boolean',
-            'cuotas'          => 'nullable|integer|min:1',
             'activo'          => 'boolean',
             'estado'          => 'required|in:nuevo,usado,reacondicionado',
         ]);
@@ -53,12 +104,13 @@ class ProductController extends Controller
         $data['slug']         = Str::slug($data['nombre']);
         $data['envio_gratis'] = $request->boolean('envio_gratis');
         $data['activo']       = $request->boolean('activo');
-        if (empty($data['precio'])) {
-            $data['precio_original'] = null;
-        } elseif ($data['precio'] == 0) {
-            $data['precio_original'] = 0;
+        if (($data['precio_oferta'] ?? null) !== null && ($data['precio'] ?? null) !== null && $data['precio_oferta'] > $data['precio']) {
+            return back()->withErrors(['precio_oferta' => 'El precio oferta no puede ser mayor al precio normal.'])->withInput();
         }
-
+        if ($request->hasFile('imagen_archivo')) {
+            $data['imagen'] = Storage::url($request->file('imagen_archivo')->store('products', 'public'));
+        }
+        unset($data['imagen_archivo']);
         // Garantizar slug único
         $base = $data['slug'];
         $n    = 1;
@@ -81,29 +133,34 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $producto)
     {
+        $this->normalizePriceInputs($request);
+        $this->normalizeDescriptionHtml($request);
+
         $data = $request->validate([
-            'nombre'          => 'required|string|max:255',
-            'descripcion'     => 'nullable|string',
+            'nombre'          => ['required', 'string', 'max:255', new NoReservedAttackWords],
+            'sku'             => ['nullable', 'string', 'max:50', new NoReservedAttackWords],
+            'descripcion_corta' => ['nullable', 'string', 'max:180', new NoReservedAttackWords],
+            'descripcion'     => ['nullable', 'string', new NoReservedAttackWords],
             'category_id'     => 'required|exists:categories,id',
             'tienda_id'       => 'required|exists:tiendas,id',
-            'precio'          => 'nullable|numeric|min:0',
-            'precio_original' => 'nullable|numeric|min:0',
+            'precio'          => 'nullable|integer|min:0',
+            'precio_oferta'   => 'nullable|integer|min:0',
             'stock'           => 'required|integer|min:0',
-            'imagen'          => 'nullable|url|max:500',
+            'imagen_archivo'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'envio_gratis'    => 'boolean',
-            'cuotas'          => 'nullable|integer|min:1',
             'activo'          => 'boolean',
             'estado'          => 'required|in:nuevo,usado,reacondicionado',
         ]);
 
         $data['envio_gratis'] = $request->boolean('envio_gratis');
         $data['activo']       = $request->boolean('activo');
-        if (empty($data['precio'])) {
-            $data['precio_original'] = null;
-        } elseif ($data['precio'] == 0) {
-            $data['precio_original'] = 0;
+        if (($data['precio_oferta'] ?? null) !== null && ($data['precio'] ?? null) !== null && $data['precio_oferta'] > $data['precio']) {
+            return back()->withErrors(['precio_oferta' => 'El precio oferta no puede ser mayor al precio normal.'])->withInput();
         }
-
+        if ($request->hasFile('imagen_archivo')) {
+            $data['imagen'] = Storage::url($request->file('imagen_archivo')->store('products', 'public'));
+        }
+        unset($data['imagen_archivo']);
         $producto->update($data);
 
         return redirect()->route('admin.productos.index')->with('success', 'Producto actualizado.');

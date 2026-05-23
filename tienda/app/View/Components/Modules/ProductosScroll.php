@@ -17,7 +17,7 @@ class ProductosScroll extends Component
         public string $tag    = '',
         public int    $limite = 7
     ) {
-        $query = Product::activos()->with('tags');
+        $query = Product::publicados()->with(['tags', 'tienda']);
         if ($this->tag) {
             $query->conTag($this->tag);
         }

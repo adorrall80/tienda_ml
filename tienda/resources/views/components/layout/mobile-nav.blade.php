@@ -1,5 +1,15 @@
 <div class="mobile-nav-overlay"></div>
 <nav class="mobile-nav" aria-label="Menú móvil">
+    @php
+        $quieroVenderUrl = route('register');
+
+        if (Auth::check()) {
+            $quieroVenderUrl = Auth::user()->hasRole(['admin', 'vendedor'])
+                ? route('vendedor.panel')
+                : route('cuenta.perfil');
+        }
+    @endphp
+
     <div class="mobile-nav-header">
         <span class="logo">{{ config('app.name') }}</span>
         <button class="mobile-nav-close" aria-label="Cerrar menú">✕</button>
@@ -18,6 +28,7 @@
                 {{ $cat->icono }} {{ $cat->nombre }}
             </a>
         @endforeach
+        <a href="{{ $quieroVenderUrl }}">Quiero vender</a>
         <a href="{{ route('carrito.index') }}">🛒 Mi carrito</a>
     </div>
 </nav>

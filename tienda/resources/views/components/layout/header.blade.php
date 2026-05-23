@@ -1,4 +1,14 @@
 <header class="header-top" role="banner">
+    @php
+        $quieroVenderUrl = route('register');
+
+        if (Auth::check()) {
+            $quieroVenderUrl = Auth::user()->hasRole(['admin', 'vendedor'])
+                ? route('vendedor.panel')
+                : route('cuenta.perfil');
+        }
+    @endphp
+
     <div class="container">
 
         <button class="mobile-menu-btn" aria-label="Abrir menú">☰</button>
@@ -52,7 +62,7 @@
                                 Panel admin
                             </a>
                         @elseif(Auth::user()->hasRole('vendedor'))
-                            <a href="{{ route('vendedor.dashboard') }}" class="dropdown-item">
+                            <a href="{{ route('vendedor.panel') }}" class="dropdown-item">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
                                 Mi tienda
                             </a>
@@ -73,7 +83,7 @@
                 </div>
             @endguest
 
-            <a href="#" class="header-link">Quiero vender</a>
+            <a href="{{ $quieroVenderUrl }}" class="header-link">Quiero vender</a>
             <a href="{{ route('carrito.index') }}" class="header-link cart-btn" aria-label="Carrito">
                 🛒
                 <span class="cart-count hidden" aria-live="polite">0</span>

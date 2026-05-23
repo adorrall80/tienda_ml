@@ -66,14 +66,24 @@
                     </td>
                     <td class="text-muted">{{ $usuario->email }}</td>
                     <td>
+                        @if($usuario->id === auth()->id())
+                            @foreach($usuario->roles as $rolActual)
+                                <span class="badge badge-secondary">{{ ucfirst($rolActual->name) }}</span>
+                            @endforeach
+                        @else
                         <form method="POST" action="{{ route('admin.usuarios.update', $usuario) }}" class="inline-form">
                             @csrf @method('PUT')
-                            <select name="rol" class="select-rol" onchange="this.form.submit()">
+                            <select name="rol" class="select-rol">
                                 @foreach($roles as $rol)
                                     <option value="{{ $rol }}" @selected($usuario->hasRole($rol))>{{ ucfirst($rol) }}</option>
                                 @endforeach
                             </select>
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                    onclick="return confirm('¿Cambiar rol de {{ addslashes($usuario->name) }}?')">
+                                Guardar rol
+                            </button>
                         </form>
+                        @endif
                     </td>
                     <td class="text-muted">{{ $usuario->created_at->format('d/m/Y') }}</td>
                     <td>

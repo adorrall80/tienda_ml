@@ -4,6 +4,16 @@ const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 const fmtCLP = n => '$' + Number(n).toLocaleString('es-CL');
 const fmtCartPrice = n => Number(n) > 0 ? fmtCLP(n) : 'Se regala';
+const safeSlug = value => /^[a-z0-9-]+$/i.test(String(value || '')) ? String(value) : '';
+const safeHttpUrl = value => {
+  try {
+    const url = new URL(String(value || ''), window.location.origin);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+};
+const clearNode = node => { if (node) node.replaceChildren(); };
 
 /* ── Toast ── */
 function showToast(msg, type = 'success', dur = 3000) {
@@ -75,7 +85,7 @@ const Cart = {
     if (!items.length) {
       empty.hidden = false;
       summary.hidden = true;
-      list.innerHTML = '';
+      clearNode(list);
       if (countText) countText.textContent = 'Sin productos agregados';
       return;
     }
@@ -86,31 +96,79 @@ const Cart = {
     if (summarySubtotal) summarySubtotal.textContent = fmtCartPrice(total);
     if (summaryTotal) summaryTotal.textContent = fmtCartPrice(total);
 
-    list.innerHTML = items.map(item => {
+    clearNode(list);
+    items.forEach(item => {
+      const id = String(item.id || '');
+      const title = String(item.title || 'Producto').slice(0, 120);
       const price = Number(item.price) || 0;
-      const qty = Number(item.qty) || 1;
+      const qty = Math.max(1, Number(item.qty) || 1);
       const lineTotal = price * qty;
-      const productUrl = item.slug ? `/productos/${item.slug}` : '/productos';
-      return `
-        <article class="cart-item" data-cart-item="${item.id}">
-          <a class="cart-item-img" href="${productUrl}">
-            ${item.img ? `<img src="${item.img}" alt="${item.title}">` : '<span>Sin imagen</span>'}
-          </a>
-          <div class="cart-item-info">
-            <a class="cart-item-title" href="${productUrl}">${item.title}</a>
-            <p class="cart-item-meta">Envío gratis disponible</p>
-            <button class="cart-remove" type="button" data-cart-remove="${item.id}">Eliminar</button>
-          </div>
-          <div class="cart-item-actions">
-            <div class="cart-qty">
-              <button type="button" data-cart-dec="${item.id}" aria-label="Disminuir cantidad">−</button>
-              <input type="number" min="1" value="${qty}" data-cart-qty="${item.id}" aria-label="Cantidad">
-              <button type="button" data-cart-inc="${item.id}" aria-label="Aumentar cantidad">+</button>
-            </div>
-            <strong>${fmtCartPrice(lineTotal)}</strong>
-          </div>
-        </article>`;
-    }).join('');
+      const productSlug = safeSlug(item.slug);
+      const productUrl = productSlug ? `/productos/${productSlug}` : '/productos';
+      const imageUrl = safeHttpUrl(item.img);
+
+      const article = document.createElement('article');
+      article.className = 'cart-item';
+      article.dataset.cartItem = id;
+
+      const imageLink = document.createElement('a');
+      imageLink.className = 'cart-item-img';
+      imageLink.href = productUrl;
+      if (imageUrl) {
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = title;
+        imageLink.appendChild(img);
+      } else {
+        const placeholder = document.createElement('span');
+        placeholder.textContent = 'Sin imagen';
+        imageLink.appendChild(placeholder);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'cart-item-info';
+      const titleLink = document.createElement('a');
+      titleLink.className = 'cart-item-title';
+      titleLink.href = productUrl;
+      titleLink.textContent = title;
+      const meta = document.createElement('p');
+      meta.className = 'cart-item-meta';
+      meta.textContent = 'Envío gratis disponible';
+      const remove = document.createElement('button');
+      remove.className = 'cart-remove';
+      remove.type = 'button';
+      remove.dataset.cartRemove = id;
+      remove.textContent = 'Eliminar';
+      info.append(titleLink, meta, remove);
+
+      const actions = document.createElement('div');
+      actions.className = 'cart-item-actions';
+      const qtyWrap = document.createElement('div');
+      qtyWrap.className = 'cart-qty';
+      const dec = document.createElement('button');
+      dec.type = 'button';
+      dec.dataset.cartDec = id;
+      dec.setAttribute('aria-label', 'Disminuir cantidad');
+      dec.textContent = '−';
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '1';
+      input.value = String(qty);
+      input.dataset.cartQty = id;
+      input.setAttribute('aria-label', 'Cantidad');
+      const inc = document.createElement('button');
+      inc.type = 'button';
+      inc.dataset.cartInc = id;
+      inc.setAttribute('aria-label', 'Aumentar cantidad');
+      inc.textContent = '+';
+      qtyWrap.append(dec, input, inc);
+      const totalEl = document.createElement('strong');
+      totalEl.textContent = fmtCartPrice(lineTotal);
+      actions.append(qtyWrap, totalEl);
+
+      article.append(imageLink, info, actions);
+      list.appendChild(article);
+    });
 
     $$('[data-cart-remove]').forEach(btn => btn.addEventListener('click', () => this.remove(btn.dataset.cartRemove)));
     $$('[data-cart-dec]').forEach(btn => btn.addEventListener('click', () => {
@@ -144,10 +202,19 @@ function initSearchAutocomplete() {
         .then(r => r.json())
         .then(matches => {
           if (!matches.length) { dropdown.classList.remove('active'); return; }
-          dropdown.innerHTML = matches.map(s => `
-            <div class="autocomplete-item" role="option">
-              <span class="icon">🔍</span><span>${s}</span>
-            </div>`).join('');
+          clearNode(dropdown);
+          matches.slice(0, 8).forEach(match => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.setAttribute('role', 'option');
+            const icon = document.createElement('span');
+            icon.className = 'icon';
+            icon.textContent = '🔍';
+            const text = document.createElement('span');
+            text.textContent = String(match || '').slice(0, 120);
+            item.append(icon, text);
+            dropdown.appendChild(item);
+          });
           dropdown.classList.add('active');
           $$('.autocomplete-item', dropdown).forEach(item => {
             item.addEventListener('mousedown', e => {
@@ -259,7 +326,100 @@ function initCartPage() {
     showToast('Carrito vaciado');
   });
   $('[data-cart-checkout]')?.addEventListener('click', () => {
-    showToast('El pago se implementará en el siguiente paso', 'info');
+    window.location.href = '/checkout';
+  });
+}
+
+function initCheckoutPage() {
+  const page = $('[data-checkout-page]');
+  const success = $('[data-order-success]');
+
+  if (success) {
+    Cart.clear();
+    return;
+  }
+
+  if (!page) return;
+
+  const items = Cart.getAll();
+  const payload = $('[data-checkout-payload]', page);
+  const list = $('[data-checkout-list]', page);
+  const countEl = $('[data-checkout-count]', page);
+  const subtotalEl = $('[data-checkout-subtotal]', page);
+  const totalEl = $('[data-checkout-total]', page);
+  const submit = $('[data-checkout-submit]', page);
+  const total = Cart.total();
+  const count = Cart.count();
+
+  if (payload) payload.value = JSON.stringify(items);
+  if (countEl) countEl.textContent = count;
+  if (subtotalEl) subtotalEl.textContent = fmtCartPrice(total);
+  if (totalEl) totalEl.textContent = fmtCartPrice(total);
+
+  if (!items.length) {
+    if (list) {
+      clearNode(list);
+      const emptyBox = document.createElement('div');
+      emptyBox.className = 'checkout-empty';
+      const title = document.createElement('strong');
+      title.textContent = 'Tu carrito esta vacio';
+      const text = document.createElement('span');
+      text.textContent = 'Agrega productos antes de crear una orden.';
+      emptyBox.append(title, text);
+      list.appendChild(emptyBox);
+    }
+    if (submit) submit.disabled = true;
+    return;
+  }
+
+  if (list) {
+    clearNode(list);
+    items.forEach(item => {
+      const qty = Number(item.qty) || 1;
+      const price = Number(item.price) || 0;
+      const article = document.createElement('article');
+      article.className = 'checkout-item';
+      const title = document.createElement('span');
+      title.textContent = String(item.title || 'Producto').slice(0, 120);
+      const total = document.createElement('strong');
+      total.textContent = `${qty} x ${fmtCartPrice(price)}`;
+      article.append(title, total);
+      list.appendChild(article);
+    });
+  }
+
+  $('form.checkout-form', page)?.addEventListener('submit', () => {
+    if (payload) payload.value = JSON.stringify(Cart.getAll());
+  });
+}
+
+function initStoreContactModals() {
+  const openers = $$('[data-store-modal-open]');
+  if (!openers.length) return;
+
+  const closeModal = modal => {
+    if (!modal) return;
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  };
+
+  openers.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const modal = document.getElementById(btn.dataset.storeModalOpen);
+      if (!modal) return;
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      modal.querySelector('[data-store-modal-close]')?.focus();
+    });
+  });
+
+  $$('[data-store-modal-close]').forEach(btn => {
+    btn.addEventListener('click', () => closeModal(btn.closest('.checkout-modal')));
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    closeModal($('.checkout-modal:not([hidden])'));
   });
 }
 
@@ -284,11 +444,19 @@ function initListingFilters() {
   const overlay   = document.querySelector('.mobile-nav-overlay');
   if (!toggleBtn || !sidebar) return;
 
+  const close = () => {
+    sidebar.classList.remove('mobile-open');
+    overlay?.classList.remove('active');
+    document.body.style.overflow = '';
+  };
+
   toggleBtn.addEventListener('click', () => {
     const isOpen = sidebar.classList.toggle('mobile-open');
     overlay?.classList.toggle('active', isOpen);
     document.body.style.overflow = isOpen ? 'hidden' : '';
   });
+
+  overlay?.addEventListener('click', close);
 }
 
 /* ── Tabs ── */
@@ -339,4 +507,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initGallery();
   initUserMenu();
   initCartPage();
+  initCheckoutPage();
+  initStoreContactModals();
 });

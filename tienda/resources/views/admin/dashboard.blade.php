@@ -21,6 +21,15 @@
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
             Tiendas
         </a>
+        <a href="{{ route('admin.pedidos.index') }}" class="nav-item">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+            Pedidos
+        </a>
+        <span class="nav-section-label">Seguridad</span>
+        <a href="{{ route('admin.seguridad.palabras.index') }}" class="nav-item">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-5"/></svg>
+            Palabras bloqueadas
+        </a>
     </x-slot>
 
     {{-- Info boxes --}}
@@ -62,6 +71,16 @@
             <div class="info-box-content">
                 <span class="info-box-text">Clientes</span>
                 <span class="info-box-number">{{ $stats['clientes'] }}</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-box-icon ib-purple">
+                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+            </div>
+            <div class="info-box-content">
+                <span class="info-box-text">Pedidos</span>
+                <span class="info-box-number">{{ $stats['pedidos'] }}</span>
             </div>
         </div>
     </div>
@@ -124,6 +143,8 @@
                     <a href="{{ route('admin.productos.create') }}" class="quick-link">+ Producto</a>
                     <a href="{{ route('admin.usuarios.index') }}" class="quick-link">Usuarios</a>
                     <a href="{{ route('admin.tiendas.index') }}" class="quick-link">Tiendas</a>
+                    <a href="{{ route('admin.pedidos.index') }}" class="quick-link">Pedidos</a>
+                    <a href="{{ route('admin.seguridad.palabras.index') }}" class="quick-link">Seguridad</a>
                     <a href="{{ route('inicio') }}" class="quick-link" target="_blank">Ver tienda</a>
                 </div>
             </div>

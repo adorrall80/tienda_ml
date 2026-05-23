@@ -18,7 +18,7 @@
             </div>
         </div>
     @else
-        <div class="info-boxes" style="grid-template-columns:repeat(3,1fr)">
+        <div class="info-boxes">
             <div class="info-box">
                 <div class="info-box-icon ib-blue">
                     <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8v4h8z"/></svg>
@@ -44,6 +44,15 @@
                 <div class="info-box-content">
                     <span class="info-box-text">Estado tienda</span>
                     <span class="info-box-number" style="font-size:16px">{{ $tienda->activa ? 'Activa' : 'Inactiva' }}</span>
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-box-icon ib-purple">
+                    <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+                </div>
+                <div class="info-box-content">
+                    <span class="info-box-text">Pedidos recibidos</span>
+                    <span class="info-box-number">{{ $pedidosRecibidosCount }}</span>
                 </div>
             </div>
         </div>
@@ -103,11 +112,44 @@
                 <div class="p-card-body">
                     <div class="quick-links">
                         <a href="{{ route('vendedor.productos.create') }}" class="quick-link">+ Producto</a>
+                        <a href="{{ route('vendedor.pedidos.index') }}" class="quick-link">Pedidos</a>
                         <a href="{{ route('vendedor.tienda.edit') }}" class="quick-link">Mi tienda</a>
                         <a href="{{ route('inicio') }}" class="quick-link" target="_blank">Ver tienda</a>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="p-card">
+            <div class="p-card-header">
+                <h3 class="p-card-title">Últimos pedidos recibidos</h3>
+                <a href="{{ route('vendedor.pedidos.index') }}" class="btn btn-sm btn-outline">Ver todos</a>
+            </div>
+            <table class="p-table">
+                <thead>
+                    <tr><th>Pedido</th><th>Cliente</th><th>Productos de tu tienda</th><th>Total tienda</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @forelse($pedidosRecibidos as $order)
+                        <tr>
+                            <td>
+                                <strong>{{ $order->numero }}</strong><br>
+                                <span class="text-muted">{{ $order->created_at->format('d/m/Y H:i') }}</span>
+                            </td>
+                            <td>
+                                {{ $order->cliente_nombre }}<br>
+                                <span class="text-muted">{{ $order->cliente_email }}</span>
+                            </td>
+                            <td>{{ $order->items->sum('cantidad') }}</td>
+                            <td>${{ number_format($order->items->sum('total'), 0, ',', '.') }}</td>
+                            <td><span class="badge badge-secondary">{{ ucfirst($order->estado) }}</span></td>
+                            <td><a href="{{ route('vendedor.pedidos.show', $order) }}" class="btn btn-sm btn-outline">Ver detalle</a></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="empty-row">Todavía no tienes pedidos recibidos.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     @endif
 </x-layouts.panel>

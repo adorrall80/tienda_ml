@@ -32,6 +32,22 @@
                         <label class="form-label">Descripción</label>
                         <textarea name="descripcion" rows="3" class="form-input">{{ old('descripcion', $tienda->descripcion) }}</textarea>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Email de contacto</label>
+                        <input type="email" name="contacto_email" value="{{ old('contacto_email', $tienda->contacto_email) }}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" name="contacto_telefono" value="{{ old('contacto_telefono', $tienda->contacto_telefono) }}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">WhatsApp</label>
+                        <input type="text" name="contacto_whatsapp" value="{{ old('contacto_whatsapp', $tienda->contacto_whatsapp) }}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dirección de atención</label>
+                        <input type="text" name="contacto_direccion" value="{{ old('contacto_direccion', $tienda->contacto_direccion) }}" class="form-input">
+                    </div>
                     <div class="form-group" style="grid-column:1/-1">
                         <label class="form-label">Slug (URL)</label>
                         <input type="text" value="{{ $tienda->slug }}" class="form-input" disabled style="background:#F8F9FA;color:#6C757D">

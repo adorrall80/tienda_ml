@@ -6,15 +6,47 @@
     </div>
 @endif
 
+@php
+    $formatPrice = fn($value) => $value !== null && $value !== '' ? number_format((int) $value, 0, ',', '.') : '';
+    $precioValue = old('precio', isset($producto) ? $formatPrice($producto->precio) : '');
+    $precioOfertaValue = old('precio_oferta', isset($producto) ? $formatPrice($producto->precio_oferta) : '');
+@endphp
+
 <div class="form-grid-2">
+    <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Tienda</label>
+        <div class="form-static">{{ $tienda->nombre }}</div>
+        <small class="form-help">Este producto quedará publicado en tu tienda.</small>
+    </div>
+
     <div class="form-group" style="grid-column:1/-1">
         <label class="form-label">Nombre <span class="req">*</span></label>
         <input type="text" name="nombre" value="{{ old('nombre', $producto->nombre ?? '') }}" class="form-input" required>
     </div>
 
+    <div class="form-group">
+        <label class="form-label">Código producto / SKU</label>
+        <input type="text" name="sku" value="{{ old('sku', $producto->sku ?? '') }}" class="form-input" maxlength="50" placeholder="Ej: 000001, SL00998">
+        <small class="form-help">Código interno opcional para identificar el producto.</small>
+    </div>
+
     <div class="form-group" style="grid-column:1/-1">
-        <label class="form-label">Descripción</label>
-        <textarea name="descripcion" rows="3" class="form-input">{{ old('descripcion', $producto->descripcion ?? '') }}</textarea>
+        <label class="form-label">Descripción corta</label>
+        <input type="text" name="descripcion_corta" value="{{ old('descripcion_corta', $producto->descripcion_corta ?? '') }}" class="form-input" maxlength="180">
+        <small class="form-help">Texto breve para tarjetas y listados. Máximo 180 caracteres.</small>
+    </div>
+
+    <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Descripción completa</label>
+        <div class="html-toolbar" aria-label="Formato descripción">
+            <button type="button" class="html-tool" data-html-command="bold">B</button>
+            <button type="button" class="html-tool" data-html-command="italic">I</button>
+            <button type="button" class="html-tool" data-html-command="underline">U</button>
+            <button type="button" class="html-tool" data-html-command="insertUnorderedList">Lista</button>
+        </div>
+        <input type="hidden" name="descripcion" class="html-description-input" value="{{ old('descripcion', $producto->descripcion ?? '') }}">
+        <div class="html-editor" contenteditable="true" role="textbox" aria-multiline="true">{!! old('descripcion', $producto->descripcion ?? '') !!}</div>
+        <small class="form-help">Permite HTML básico: negrita, cursiva, subrayado y listas.</small>
     </div>
 
     <div class="form-group">
@@ -30,27 +62,27 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">URL imagen</label>
-        <input type="url" name="imagen" value="{{ old('imagen', $producto->imagen ?? '') }}" class="form-input" placeholder="https://…">
+        <label class="form-label">Imagen del producto</label>
+        @if(isset($producto) && $producto->imagen)
+            <div class="product-image-current">
+                <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}">
+                <span>Imagen actual</span>
+            </div>
+        @endif
+        <input type="file" name="imagen_archivo" class="form-input" accept="image/jpeg,image/png,image/webp">
+        <small class="form-help">Formatos: JPG, PNG o WebP. Máximo 4 MB.</small>
     </div>
 
     <div class="form-group">
-        <label class="form-label">Precio <small class="text-muted">(dejar vacío si es regalo)</small></label>
-        <input type="number" name="precio" id="campo_precio" value="{{ old('precio', $producto->precio ?? '') }}" class="form-input" min="0" step="1" placeholder="0">
+        <label class="form-label">Precio normal <small class="text-muted">(dejar vacío si es regalo)</small></label>
+        <input type="text" name="precio" id="campo_precio" value="{{ $precioValue }}" class="form-input" inputmode="numeric" pattern="[0-9.]*" placeholder="0">
     </div>
 
     <div class="form-group">
-        <label class="form-label">Precio original (antes de descuento)</label>
-        <input type="number" name="precio_original" id="campo_precio_original" value="{{ old('precio_original', $producto->precio_original ?? '') }}" class="form-input" min="0" step="1">
+        <label class="form-label">Precio oferta</label>
+        <input type="text" name="precio_oferta" id="campo_precio_oferta" value="{{ $precioOfertaValue }}" class="form-input" inputmode="numeric" pattern="[0-9.]*">
+        <small class="form-help">Si completas este campo, este será el precio final de venta publicado.</small>
     </div>
-
-    <script>
-        document.getElementById('campo_precio').addEventListener('input', function () {
-            if (this.value === '0' || this.value === '') {
-                document.getElementById('campo_precio_original').value = this.value;
-            }
-        });
-    </script>
 
     <div class="form-group">
         <label class="form-label">Estado del producto <span class="req">*</span></label>
@@ -68,11 +100,6 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Cuotas</label>
-        <input type="number" name="cuotas" value="{{ old('cuotas', $producto->cuotas ?? '') }}" class="form-input" min="1">
-    </div>
-
-    <div class="form-group">
         <label class="form-check">
             <input type="hidden" name="envio_gratis" value="0">
             <input type="checkbox" name="envio_gratis" value="1" @checked(old('envio_gratis', $producto->envio_gratis ?? false))>
@@ -82,11 +109,39 @@
 
     @isset($producto)
     <div class="form-group">
-        <label class="form-check">
+        <label class="form-switch">
             <input type="hidden" name="activo" value="0">
-            <input type="checkbox" name="activo" value="1" @checked(old('activo', $producto->activo ?? true))>
-            Producto activo
+            <input class="form-switch-input" type="checkbox" name="activo" value="1" @checked(old('activo', $producto->activo ?? true))>
+            <span class="form-switch-slider" aria-hidden="true"></span>
+            <span>Producto activo</span>
         </label>
     </div>
     @endisset
 </div>
+
+<script>
+document.querySelectorAll('.html-editor').forEach((editor) => {
+    const group = editor.closest('.form-group');
+    const input = group.querySelector('.html-description-input');
+    const sync = () => input.value = editor.innerHTML.trim();
+
+    editor.addEventListener('input', sync);
+    editor.addEventListener('keyup', sync);
+    editor.addEventListener('blur', sync);
+    editor.addEventListener('paste', () => setTimeout(sync, 0));
+    group.querySelectorAll('[data-html-command]').forEach((button) => {
+        button.addEventListener('click', () => {
+            editor.focus();
+            document.execCommand(button.dataset.htmlCommand, false, null);
+            sync();
+        });
+    });
+    editor.closest('form')?.addEventListener('submit', sync);
+});
+document.addEventListener('submit', () => {
+    document.querySelectorAll('.html-editor').forEach((editor) => {
+        const input = editor.closest('.form-group')?.querySelector('.html-description-input');
+        if (input) input.value = editor.innerHTML.trim();
+    });
+}, true);
+</script>

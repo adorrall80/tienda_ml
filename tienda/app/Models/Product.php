@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     protected $fillable = [
-        'category_id', 'tienda_id', 'nombre', 'slug', 'descripcion',
-        'precio', 'precio_original', 'stock', 'imagen',
-        'envio_gratis', 'cuotas', 'rating', 'rating_count', 'activo', 'estado',
+        'category_id', 'tienda_id', 'nombre', 'slug', 'sku', 'descripcion', 'descripcion_corta',
+        'precio', 'precio_oferta', 'stock', 'imagen',
+        'envio_gratis', 'rating', 'rating_count', 'activo', 'estado',
     ];
 
     const ESTADOS = ['nuevo' => 'Nuevo', 'usado' => 'Usado', 'reacondicionado' => 'Reacondicionado'];
@@ -17,7 +17,27 @@ class Product extends Model
     protected $casts = [
         'envio_gratis' => 'boolean',
         'activo'       => 'boolean',
+        'precio'       => 'integer',
+        'precio_oferta' => 'integer',
     ];
+
+    public function getPrecioFinalAttribute(): ?int
+    {
+        if ($this->precio_oferta !== null && $this->precio_oferta >= 0) {
+            return (int) $this->precio_oferta;
+        }
+
+        return $this->precio !== null ? (int) $this->precio : null;
+    }
+
+    public function getPrecioReferenciaAttribute(): ?int
+    {
+        if ($this->precio_oferta !== null && $this->precio !== null && $this->precio_oferta < $this->precio) {
+            return (int) $this->precio;
+        }
+
+        return null;
+    }
 
     public function category()
     {
@@ -39,9 +59,21 @@ class Product extends Model
         return $this->belongsTo(Tienda::class);
     }
 
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
     public function scopeActivos($query)
     {
         return $query->where('activo', true);
+    }
+
+    public function scopePublicados($query)
+    {
+        return $query
+            ->activos()
+            ->whereHas('tienda', fn($q) => $q->where('activa', true));
     }
 
     public function scopeConTag($query, string $slug)
@@ -51,10 +83,13 @@ class Product extends Model
 
     public function getPorcentajeDescuentoAttribute(): ?int
     {
-        if (! $this->precio_original || $this->precio_original <= $this->precio) {
+        $referencia = $this->precio_referencia;
+        $final = $this->precio_final;
+
+        if (! $referencia || $final === null || $referencia <= $final) {
             return null;
         }
 
-        return (int) round((1 - $this->precio / $this->precio_original) * 100);
+        return (int) round((1 - $final / $referencia) * 100);
     }
 }

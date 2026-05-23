@@ -17,7 +17,7 @@ class ProductosGrid extends Component
         public string $tag    = '',
         public int    $limite = 8
     ) {
-        $query = Product::activos()->with('tags');
+        $query = Product::publicados()->with(['tags', 'tienda']);
         if ($this->tag) {
             $query->conTag($this->tag);
         }

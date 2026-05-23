@@ -34,6 +34,9 @@
                 @if(request()->filled('orden'))
                     <input type="hidden" name="orden" value="{{ request('orden') }}">
                 @endif
+                @if(request()->filled('per_page'))
+                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                @endif
 
                 {{-- Categorias --}}
                 <div class="filter-box">
@@ -70,6 +73,29 @@
                                value="{{ request('precio_max') }}">
                     </div>
                     <button type="submit" class="apply-filter-btn">Aplicar</button>
+                </div>
+
+                {{-- Estado --}}
+                <div class="filter-box">
+                    <h3>Estado</h3>
+                    <div class="filter-option">
+                        <label>
+                            <input type="radio" name="estado" value=""
+                                   onchange="this.form.submit()"
+                                   {{ !request('estado') ? 'checked' : '' }}>
+                            Todos
+                        </label>
+                    </div>
+                    @foreach(\App\Models\Product::ESTADOS as $valor => $label)
+                    <div class="filter-option">
+                        <label>
+                            <input type="radio" name="estado" value="{{ $valor }}"
+                                   onchange="this.form.submit()"
+                                   {{ request('estado') === $valor ? 'checked' : '' }}>
+                            {{ $label }}
+                        </label>
+                    </div>
+                    @endforeach
                 </div>
 
                 {{-- Envio --}}
@@ -122,11 +148,17 @@
                                 <a href="{{ route('productos.index', request()->except(['precio_min', 'precio_max', 'page'])) }}">×</a>
                             </span>
                         @endif
+                        @if(request('estado') && array_key_exists(request('estado'), \App\Models\Product::ESTADOS))
+                            <span class="filter-tag">
+                                Estado: {{ \App\Models\Product::ESTADOS[request('estado')] }}
+                                <a href="{{ route('productos.index', request()->except(['estado', 'page'])) }}">×</a>
+                            </span>
+                        @endif
                     </div>
                 </div>
 
-                <form method="GET" action="{{ route('productos.index') }}" style="display:flex;align-items:center;gap:8px;">
-                    @foreach(request()->except('orden') as $k => $v)
+                <form method="GET" action="{{ route('productos.index') }}" class="sort-form">
+                    @foreach(request()->except(['orden', 'page']) as $k => $v)
                         <input type="hidden" name="{{ $k }}" value="{{ $v }}">
                     @endforeach
                     <span class="sort-label">Ordenar por:</span>
@@ -136,6 +168,18 @@
                         <option value="precio_desc" {{ request('orden') === 'precio_desc' ? 'selected' : '' }}>Mayor precio</option>
                         <option value="nuevos"      {{ request('orden') === 'nuevos'      ? 'selected' : '' }}>Más nuevos</option>
                         <option value="rating"      {{ request('orden') === 'rating'      ? 'selected' : '' }}>Mejor calificación</option>
+                    </select>
+                </form>
+
+                <form method="GET" action="{{ route('productos.index') }}" class="sort-form">
+                    @foreach(request()->except(['per_page', 'page']) as $k => $v)
+                        <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                    @endforeach
+                    <span class="sort-label">Mostrar:</span>
+                    <select class="sort-select" name="per_page" aria-label="Productos por página" onchange="this.form.submit()">
+                        <option value="10" {{ $perPage === 10 ? 'selected' : '' }}>10</option>
+                        <option value="20" {{ $perPage === 20 ? 'selected' : '' }}>20</option>
+                        <option value="50" {{ $perPage === 50 ? 'selected' : '' }}>50</option>
                     </select>
                 </form>
             </div>

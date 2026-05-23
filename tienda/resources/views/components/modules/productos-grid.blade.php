@@ -1,8 +1,8 @@
 @if($productos->isNotEmpty())
-<section class="section">
+<section class="section home-section home-section-products">
     <div class="container">
         <h2 class="section-title">
-            {{ $titulo }}
+            <span>{{ $titulo }}</span>
             <a href="{{ $verTodosUrl }}">Ver todas</a>
         </h2>
         <div class="products-grid">

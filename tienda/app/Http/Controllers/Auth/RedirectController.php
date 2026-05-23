@@ -16,7 +16,7 @@ class RedirectController extends Controller
         }
 
         if ($user->hasRole('vendedor')) {
-            return redirect()->route('vendedor.dashboard');
+            return redirect()->route('vendedor.panel');
         }
 
         return redirect()->route('inicio');

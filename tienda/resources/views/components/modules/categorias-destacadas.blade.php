@@ -1,8 +1,8 @@
 @if($categorias->isNotEmpty())
-<section class="section">
+<section class="section home-section home-section-categories">
     <div class="container">
         <h2 class="section-title">
-            Categorías destacadas
+            <span>Categorías destacadas</span>
             <a href="{{ route('productos.index') }}">Ver todas</a>
         </h2>
         <div class="categories-grid">

@@ -29,7 +29,16 @@ class UserController extends Controller
     {
         $request->validate(['rol' => 'required|exists:roles,name']);
 
-        $user->syncRoles([$request->rol]);
+        if ($user->id === $request->user()->id) {
+            return back()->with('error', 'No puedes cambiar tu propio rol.');
+        }
+
+        $roles = match ($request->rol) {
+            'vendedor' => ['cliente', 'vendedor'],
+            default => [$request->rol],
+        };
+
+        $user->syncRoles($roles);
 
         return back()->with('success', "Rol de {$user->name} actualizado.");
     }

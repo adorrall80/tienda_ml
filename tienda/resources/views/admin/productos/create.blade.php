@@ -21,13 +21,13 @@
         </a>
     </x-slot>
 
-    <div class="p-card" style="max-width:720px">
+    <div class="p-card product-editor-card">
         <div class="p-card-header">
             <h3 class="p-card-title">Nuevo producto</h3>
             <a href="{{ route('admin.productos.index') }}" class="btn btn-sm btn-outline">← Volver</a>
         </div>
         <div class="p-card-body">
-            <form method="POST" action="{{ route('admin.productos.store') }}" class="product-form">
+            <form method="POST" action="{{ route('admin.productos.store') }}" class="product-form" enctype="multipart/form-data">
                 @csrf
 
                 @include('admin.productos._form')

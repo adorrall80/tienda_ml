@@ -4,14 +4,12 @@
     $tags    = $producto->relationLoaded('tags') ? $producto->tags : collect();
     $isNuevo = $tags->contains('slug', 'nuevo');
     $isHot   = $tags->contains('slug', 'hot');
-    $precio  = $producto->precio !== null && $producto->precio > 0
-                 ? '$' . number_format($producto->precio, 0, ',', '.')
+    $precioFinal = $producto->precio_final;
+    $precio  = $precioFinal !== null && $precioFinal > 0
+                 ? '$' . number_format($precioFinal, 0, ',', '.')
                  : 'Se regala';
-    $orig    = $producto->precio_original
-                 ? '$' . number_format($producto->precio_original, 0, ',', '.')
-                 : null;
-    $cuota   = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null && $producto->precio > 0)
-                 ? '$' . number_format($producto->precio / $producto->cuotas, 0, ',', '.')
+    $orig    = $producto->precio_referencia
+                 ? '$' . number_format($producto->precio_referencia, 0, ',', '.')
                  : null;
     $stars   = str_repeat('★', (int) round($producto->rating))
              . str_repeat('☆', 5 - (int) round($producto->rating));
@@ -43,19 +41,19 @@
                 </span>
             @endif
             <h3 class="product-title">{{ $producto->nombre }}</h3>
+            @if($producto->relationLoaded('tienda') && $producto->tienda)
+                <p class="product-store">{{ $producto->tienda->nombre }}</p>
+            @endif
             @if($orig)
                 <p class="product-original-price">{{ $orig }}</p>
             @endif
-            @if($producto->precio === null || $producto->precio <= 0)
+            @if($precioFinal === null || $precioFinal <= 0)
                 <p class="product-price"><span class="price-regalo">¡Se regala!</span></p>
             @else
                 <p class="product-price">{{ $precio }}</p>
             @endif
             @if($desc)
                 <p class="product-discount">{{ $desc }}% OFF</p>
-            @endif
-            @if($cuota)
-                <p class="product-installments">en {{ $producto->cuotas }}x {{ $cuota }} sin interés</p>
             @endif
             @if($producto->envio_gratis)
                 <p class="product-shipping">Envío gratis</p>

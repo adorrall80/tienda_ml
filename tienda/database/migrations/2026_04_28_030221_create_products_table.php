@@ -16,13 +16,13 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->string('nombre');
             $table->string('slug')->unique();
+            $table->string('sku', 50)->nullable();
             $table->text('descripcion')->nullable();
             $table->unsignedBigInteger('precio');
             $table->unsignedBigInteger('precio_original')->nullable();
             $table->unsignedInteger('stock')->default(0);
             $table->string('imagen');
             $table->boolean('envio_gratis')->default(false);
-            $table->unsignedTinyInteger('cuotas')->nullable();
             $table->decimal('rating', 3, 2)->default(0);
             $table->unsignedInteger('rating_count')->default(0);
             $table->boolean('activo')->default(true);

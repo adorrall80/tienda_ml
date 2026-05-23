@@ -11,9 +11,13 @@ class ProductsController extends Controller
 {
     public function index(Request $request)
     {
+        $searchTerm = mb_substr(trim((string) $request->query('q', '')), 0, 80);
+        $perPage = in_array((int) $request->query('per_page', 20), [10, 20, 50], true)
+            ? (int) $request->query('per_page', 20)
+            : 20;
         $categorias = Category::activas()->raiz()->get();
 
-        $query = Product::activos()->with('tags');
+        $query = Product::publicados()->with('tags');
 
         // Filtro: categoría
         $categoriaActual = null;
@@ -25,13 +29,22 @@ class ProductsController extends Controller
         }
 
         // Filtro: búsqueda
-        if ($request->filled('q')) {
-            $query->where('nombre', 'like', '%' . $request->q . '%');
+        if ($searchTerm !== '') {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('nombre', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('descripcion_corta', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('descripcion', 'like', '%' . $searchTerm . '%');
+            });
         }
 
         // Filtro: envío gratis
         if ($request->boolean('envio_gratis')) {
             $query->where('envio_gratis', true);
+        }
+
+        // Filtro: estado del producto
+        if ($request->filled('estado') && array_key_exists($request->query('estado'), Product::ESTADOS)) {
+            $query->where('estado', $request->query('estado'));
         }
 
         // Filtro: rango de precio
@@ -51,26 +64,26 @@ class ProductsController extends Controller
             default       => $query->orderByDesc('rating_count'),
         };
 
-        $productos = $query->paginate(12)->withQueryString();
+        $productos = $query->paginate($perPage)->withQueryString();
 
         $titulo = match (true) {
             $categoriaActual !== null    => $categoriaActual->nombre,
-            $request->filled('q')       => 'Resultados para "' . $request->q . '"',
+            $searchTerm !== ''          => 'Resultados para "' . $searchTerm . '"',
             default                     => 'Todos los productos',
         };
 
-        return view('shop.productos', compact('productos', 'categorias', 'categoriaActual', 'titulo'));
+        return view('shop.productos', compact('productos', 'categorias', 'categoriaActual', 'titulo', 'perPage'));
     }
 
     public function show(string $slug)
     {
-        $producto = Product::activos()
-            ->with(['tags', 'category', 'images'])
+        $producto = Product::publicados()
+            ->with(['tags', 'category', 'images', 'tienda'])
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $relacionados = Product::activos()
-            ->with('tags')
+        $relacionados = Product::publicados()
+            ->with(['tags', 'tienda'])
             ->where('category_id', $producto->category_id)
             ->where('id', '!=', $producto->id)
             ->take(6)

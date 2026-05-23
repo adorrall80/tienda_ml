@@ -16,14 +16,15 @@
     }
     $galeria  = $galeria->values()->all();
     $desc     = $producto->porcentaje_descuento;
-    $precio   = $producto->precio !== null && $producto->precio > 0
-                  ? '$' . number_format($producto->precio, 0, ',', '.')
+    $precioFinal = $producto->precio_final;
+    $precio   = $precioFinal !== null && $precioFinal > 0
+                  ? '$' . number_format($precioFinal, 0, ',', '.')
                   : 'Se regala';
-    $orig     = $producto->precio_original ? '$' . number_format($producto->precio_original, 0, ',', '.') : null;
-    $cuota    = ($producto->cuotas && $producto->cuotas > 1 && $producto->precio !== null && $producto->precio > 0)
-                  ? '$' . number_format($producto->precio / $producto->cuotas, 0, ',', '.')
-                  : null;
+    $orig     = $producto->precio_referencia ? '$' . number_format($producto->precio_referencia, 0, ',', '.') : null;
     $stars    = str_repeat('★', (int) round($producto->rating)) . str_repeat('☆', 5 - (int) round($producto->rating));
+    $tiendaNombre = $producto->tienda?->nombre ?? 'Vendedor';
+    $tiendaDescripcion = $producto->tienda?->descripcion;
+    $tiendaInicial = strtoupper(substr($tiendaNombre, 0, 1));
 @endphp
 
 {{-- Page Header --}}
@@ -87,14 +88,14 @@
                     <span class="stars">{{ $stars }}</span>
                     <span>{{ number_format($producto->rating, 1) }}</span>
                     <a href="#tab-reviews">({{ number_format($producto->rating_count, 0, ',', '.') }} reseñas)</a>
-                    <span style="margin-left:8px;color:var(--green)">&#10003; Vendedor oficial</span>
+                    <span class="detail-store-chip">&#10003; {{ $tiendaNombre }}</span>
                 </div>
 
                 @if($orig)
                     <p class="detail-original">{{ $orig }}</p>
                 @endif
                 <p class="detail-price">
-                    @if($producto->precio === null || $producto->precio <= 0)
+                    @if($precioFinal === null || $precioFinal <= 0)
                         <span class="price-regalo">¡Se regala!</span>
                     @else
                         {{ $precio }}
@@ -103,17 +104,10 @@
                         @endif
                     @endif
                 </p>
-                @if($cuota)
-                    <p class="detail-installments">
-                        en {{ $producto->cuotas }}x {{ $cuota }}
-                        <strong style="color:var(--green)">sin interés</strong>
-                    </p>
-                @endif
-
                 @if($producto->envio_gratis)
                     <div>
                         <span class="detail-shipping-badge">&#128666; Envío gratis</span>
-                        <span style="font-size:13px;color:var(--text-muted);margin-left:6px;">Llega mañana</span>
+                        <span class="detail-muted-inline">Coordina entrega con la tienda</span>
                     </div>
                 @endif
 
@@ -140,51 +134,50 @@
                             data-add-cart
                             data-cart-redirect="true"
                             data-id="{{ $producto->id }}"
-                            data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
-                            data-price="{{ $producto->precio }}"
+                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                            data-price="{{ $precioFinal }}"
                             data-img="{{ $producto->imagen }}"
                             data-slug="{{ $producto->slug }}"
                             data-cart-url="{{ route('carrito.index') }}">
-                        Comprar ahora
+                        Solicitar compra
                     </button>
                     <button class="btn-add-cart"
                             data-add-cart
                             data-id="{{ $producto->id }}"
-                            data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
-                            data-price="{{ $producto->precio }}"
+                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                            data-price="{{ $precioFinal }}"
                             data-img="{{ $producto->imagen }}"
                             data-slug="{{ $producto->slug }}">
                         Agregar al carrito
                     </button>
                 </div>
 
-                {{-- Mobile: vendedor y pagos --}}
+                {{-- Mobile: vendedor y coordinacion --}}
                 <div class="mobile-seller-payment">
                     <div class="mobile-seller-line">
                         <div class="seller-avatar" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">
-                            {{ strtoupper(substr($producto->nombre, 0, 1)) }}
+                            {{ $tiendaInicial }}
                         </div>
                         <div>
-                            <p style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:2px;">Vendedor Oficial</p>
-                            <p style="font-size:11px;color:var(--green);">&#11088; Platinum &middot; 99% ventas exitosas</p>
+                            <p class="mobile-seller-name">{{ $tiendaNombre }}</p>
+                            <p class="mobile-seller-level">&#11088; Tienda verificada</p>
                         </div>
                     </div>
                     <div class="mobile-payment-badges">
-                        @if($cuota)<span>&#128179; {{ $producto->cuotas }} cuotas sin interés</span>@endif
-                        <span>&#128274; Compra protegida</span>
-                        <span>&#8617; Devolución 30 días</span>
+                        <span>&#128222; Contacto directo con la tienda</span>
+                        <span>&#128221; Solicitud registrada en tu cuenta</span>
                         @if($producto->envio_gratis)<span>&#128666; Envío gratis</span>@endif
                     </div>
                 </div>
 
-                {{-- Lo que incluye --}}
-                <div style="margin-top:20px;padding:16px;background:#f8f8f8;border-radius:8px;">
-                    <h4 style="font-size:14px;font-weight:600;margin-bottom:12px;">Lo que incluye</h4>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--text-light);">
-                        <span>&#10003; Garantía oficial 1 año</span>
-                        <span>&#10003; Devolución gratis 30 días</span>
-                        <span>&#10003; Compra protegida</span>
-                        <span>&#10003; Factura electrónica</span>
+                {{-- Flujo sin pago --}}
+                <div class="detail-flow-box">
+                    <h4>Cómo sigue la solicitud</h4>
+                    <div>
+                        <span>&#10003; Agregas el producto al carrito</span>
+                        <span>&#10003; Confirmas la solicitud logueado</span>
+                        <span>&#10003; La tienda recibe tus datos</span>
+                        <span>&#10003; Coordinan entrega y pago por contacto</span>
                     </div>
                 </div>
 
@@ -203,15 +196,8 @@
                     <div class="tab-content active" id="tab-desc" role="tabpanel">
                         <div class="description-text">
                             @if($producto->descripcion)
-                                <p>{{ $producto->descripcion }}</p>
+                                <div class="product-html-description">{!! $producto->descripcion !!}</div>
                             @endif
-                            <h4>Características principales</h4>
-                            <ul>
-                                <li>Producto 100% original y nuevo</li>
-                                <li>Garantía oficial de fábrica</li>
-                                @if($producto->envio_gratis)<li>Envío gratis a todo Chile</li>@endif
-                                @if($cuota)<li>{{ $producto->cuotas }} cuotas sin interés disponibles</li>@endif
-                            </ul>
                         </div>
                     </div>
 
@@ -220,15 +206,15 @@
                         <table class="specs-table">
                             <tbody>
                                 <tr><td>Nombre</td><td>{{ $producto->nombre }}</td></tr>
+                                @if($producto->sku)
+                                <tr><td>Código producto</td><td>{{ $producto->sku }}</td></tr>
+                                @endif
                                 <tr><td>Categoría</td><td>{{ $producto->category?->nombre ?? '—' }}</td></tr>
                                 <tr><td>Stock disponible</td><td>{{ $producto->stock }} unidades</td></tr>
-                                @if($producto->precio_original)
-                                <tr><td>Precio original</td><td>{{ $orig }}</td></tr>
+                                @if($orig)
+                                <tr><td>Precio normal</td><td>{{ $orig }}</td></tr>
                                 @endif
                                 <tr><td>Precio</td><td>{{ $precio }}</td></tr>
-                                @if($cuota)
-                                <tr><td>Cuotas</td><td>{{ $producto->cuotas }}x {{ $cuota }} sin interés</td></tr>
-                                @endif
                                 <tr><td>Envío</td><td>{{ $producto->envio_gratis ? 'Envío gratis' : 'Con costo de envío' }}</td></tr>
                                 <tr><td>Calificación</td><td>{{ $stars }} {{ number_format($producto->rating, 1) }}/5</td></tr>
                             </tbody>
@@ -320,34 +306,26 @@
 
             {{-- Buy Box --}}
             <div class="buy-box">
-                <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">Precio</p>
+                <p class="buy-box-label">Precio referencial</p>
                 @if($orig)
-                    <p class="detail-original" style="font-size:13px;">{{ $orig }}</p>
+                    <p class="detail-original buy-box-original">{{ $orig }}</p>
                 @endif
-                <p class="detail-price" style="font-size:28px;">
+                <p class="detail-price buy-box-price">
                     {{ $precio }}
-                    @if($desc)<span class="detail-discount-badge" style="font-size:12px;">{{ $desc }}% OFF</span>@endif
+                    @if($desc)<span class="detail-discount-badge detail-discount-badge-sm">{{ $desc }}% OFF</span>@endif
                 </p>
-                @if($cuota)
-                    <p class="detail-installments" style="font-size:13px;">
-                        en {{ $producto->cuotas }}x {{ $cuota }}
-                        <strong style="color:var(--green)">sin interés</strong>
-                    </p>
-                @endif
-
                 @if($producto->envio_gratis)
-                    <span class="detail-shipping-badge" style="font-size:12px;margin:12px 0;display:inline-flex;">
-                        &#128666; Envío gratis — llega mañana
-                    </span>
+                    <span class="detail-shipping-badge buy-box-shipping">&#128666; Envío gratis</span>
                 @endif
 
-                <div style="font-size:13px;color:var(--text-light);margin:8px 0 14px;">
+                <div class="buy-box-meta">
                     <div>&#128230; Stock: <strong>{{ $producto->stock }} unidades</strong></div>
-                    <div style="margin-top:6px;">&#127978; Vendido por <a href="#">TiendaMV Oficial</a></div>
+                    <div>&#127978; Tienda: <strong>{{ $tiendaNombre }}</strong></div>
+                    <div>&#128222; El cierre se coordina por contacto con la tienda</div>
                 </div>
 
                 <div class="quantity-section product-actions">
-                    <label style="font-size:13px;">Cantidad:</label>
+                    <label class="buy-box-quantity-label">Cantidad:</label>
                     <div class="quantity-control">
                         <button class="qty-btn dec">&#8722;</button>
                         <input class="qty-input" type="number" value="1"
@@ -357,42 +335,43 @@
                     </div>
                 </div>
 
-                <div class="buy-buttons product-actions" style="margin-top:14px;">
+                <div class="buy-buttons product-actions buy-box-actions">
                     <button class="btn-buy-now"
                             data-add-cart
                             data-cart-redirect="true"
                             data-id="{{ $producto->id }}"
-                            data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
-                            data-price="{{ $producto->precio }}"
+                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                            data-price="{{ $precioFinal }}"
                             data-img="{{ $producto->imagen }}"
                             data-slug="{{ $producto->slug }}"
                             data-cart-url="{{ route('carrito.index') }}">
-                        Comprar ahora
+                        Solicitar compra
                     </button>
                     <button class="btn-add-cart"
                             data-add-cart
                             data-id="{{ $producto->id }}"
-                            data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
-                            data-price="{{ $producto->precio }}"
+                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                            data-price="{{ $precioFinal }}"
                             data-img="{{ $producto->imagen }}"
                             data-slug="{{ $producto->slug }}">
                         Agregar al carrito
                     </button>
                 </div>
 
-                <div style="margin-top:14px;font-size:12px;color:var(--text-muted);text-align:center;">
-                    &#128274; Compra 100% protegida
-                </div>
+                <div class="buy-box-helper">La solicitud queda guardada en tu cuenta.</div>
             </div>
 
             {{-- Seller Card --}}
             <div class="seller-card">
                 <h3>Información del vendedor</h3>
                 <div class="seller-info">
-                    <div class="seller-avatar">{{ strtoupper(substr($producto->nombre, 0, 1)) }}</div>
+                    <div class="seller-avatar">{{ $tiendaInicial }}</div>
                     <div>
-                        <p class="seller-name">TiendaMV Oficial</p>
-                        <p class="seller-level">&#11088; Vendedor Platinum</p>
+                        <p class="seller-name">{{ $tiendaNombre }}</p>
+                        <p class="seller-level">&#11088; Tienda verificada</p>
+                        @if($tiendaDescripcion)
+                            <p class="seller-description">{{ $tiendaDescripcion }}</p>
+                        @endif
                     </div>
                 </div>
                 <div class="seller-stats">
@@ -406,14 +385,14 @@
                 </a>
             </div>
 
-            {{-- Medios de pago --}}
-            <div style="background:var(--white);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow);">
-                <h3 style="font-size:13px;font-weight:600;margin-bottom:12px;">Medios de pago</h3>
-                <div style="font-size:13px;color:var(--text-light);display:flex;flex-direction:column;gap:8px;">
-                    <div>&#128179; Tarjetas de crédito hasta 24 cuotas</div>
-                    <div>&#127970; Transferencia bancaria</div>
-                    <div>&#128178; Webpay / Redcompra</div>
-                    <div>&#128241; Mercado Pago / Khipu</div>
+            {{-- Coordinacion --}}
+            <div class="contact-card">
+                <h3>Coordinación</h3>
+                <div>
+                    <div>&#128221; Confirma la solicitud desde el carrito</div>
+                    <div>&#128222; La tienda verá tus datos de contacto</div>
+                    <div>&#128241; El comprador contacta a la tienda por WhatsApp o teléfono</div>
+                    <div>&#128230; Entrega y pago se acuerdan fuera de la plataforma</div>
                 </div>
             </div>
 
@@ -431,12 +410,12 @@
             data-add-cart
             data-cart-redirect="true"
             data-id="{{ $producto->id }}"
-            data-title="{{ addslashes(substr($producto->nombre, 0, 60)) }}"
-            data-price="{{ $producto->precio }}"
+            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+            data-price="{{ $precioFinal }}"
             data-img="{{ $producto->imagen }}"
             data-slug="{{ $producto->slug }}"
             data-cart-url="{{ route('carrito.index') }}">
-        Comprar ahora
+        Solicitar compra
     </button>
 </div>
 

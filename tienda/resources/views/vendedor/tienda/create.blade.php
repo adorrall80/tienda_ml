@@ -25,6 +25,22 @@
                         <label class="form-label">Descripción</label>
                         <textarea name="descripcion" rows="3" class="form-input" placeholder="Cuéntale a tus clientes qué vendes…">{{ old('descripcion') }}</textarea>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Email de contacto</label>
+                        <input type="email" name="contacto_email" value="{{ old('contacto_email') }}" class="form-input" placeholder="ventas@mitienda.cl">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" name="contacto_telefono" value="{{ old('contacto_telefono') }}" class="form-input" placeholder="+56 2 2345 6789">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">WhatsApp</label>
+                        <input type="text" name="contacto_whatsapp" value="{{ old('contacto_whatsapp') }}" class="form-input" placeholder="+56 9 8765 4321">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dirección de atención</label>
+                        <input type="text" name="contacto_direccion" value="{{ old('contacto_direccion') }}" class="form-input" placeholder="Comuna, ciudad o local">
+                    </div>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Crear tienda</button>
