@@ -2,11 +2,21 @@
 <nav class="mobile-nav" aria-label="Menú móvil">
     @php
         $quieroVenderUrl = route('register');
+        $quieroVenderLabel = 'Quiero vender';
+        $mobileUser = Auth::user();
 
-        if (Auth::check()) {
-            $quieroVenderUrl = Auth::user()->hasRole(['admin', 'vendedor'])
-                ? route('vendedor.panel')
-                : route('cuenta.perfil');
+        if ($mobileUser) {
+            $hasAdminAccess = $mobileUser->hasRole('admin');
+            $hasSellerAccess = $mobileUser->hasRole('vendedor') || (bool) $mobileUser->tienda;
+            if ($hasAdminAccess) {
+                $quieroVenderUrl = route('admin.dashboard');
+                $quieroVenderLabel = 'Panel admin';
+            } elseif ($hasSellerAccess) {
+                $quieroVenderUrl = route('vendedor.panel');
+                $quieroVenderLabel = 'Mi tienda';
+            } else {
+                $quieroVenderUrl = route('cuenta.perfil');
+            }
         }
     @endphp
 
@@ -28,7 +38,7 @@
                 {{ $cat->icono }} {{ $cat->nombre }}
             </a>
         @endforeach
-        <a href="{{ $quieroVenderUrl }}">Quiero vender</a>
+        <a href="{{ $quieroVenderUrl }}">{{ $quieroVenderLabel }}</a>
         <a href="{{ route('carrito.index') }}">🛒 Mi carrito</a>
     </div>
 </nav>

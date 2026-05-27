@@ -34,7 +34,7 @@
                 </div>
                 <div class="info-box-content">
                     <span class="info-box-text">Activos</span>
-                    <span class="info-box-number">{{ $tienda->productos()->where('activo', true)->count() }}</span>
+                    <span class="info-box-number">{{ $tienda->productos()->where('estado_publicacion_id', \App\Models\Product::PUBLICACION_ACTIVO)->count() }}</span>
                 </div>
             </div>
             <div class="info-box">
@@ -85,8 +85,8 @@
                             <td>${{ number_format($p->precio, 0, ',', '.') }}</td>
                             <td>{{ $p->stock }}</td>
                             <td>
-                                <span class="badge {{ $p->activo ? 'badge-success' : 'badge-secondary' }}">
-                                    {{ $p->activo ? 'Activo' : 'Inactivo' }}
+                                <span class="badge {{ $p->estado_publicacion_id === \App\Models\Product::PUBLICACION_ACTIVO ? 'badge-success' : 'badge-secondary' }}">
+                                    {{ $p->estado_publicacion_label }}
                                 </span>
                             </td>
                             <td>
@@ -142,7 +142,7 @@
                             </td>
                             <td>{{ $order->items->sum('cantidad') }}</td>
                             <td>${{ number_format($order->items->sum('total'), 0, ',', '.') }}</td>
-                            <td><span class="badge badge-secondary">{{ ucfirst($order->estado) }}</span></td>
+                            <td><span class="badge badge-secondary">{{ $order->estadoLabel() }}</span></td>
                             <td><a href="{{ route('vendedor.pedidos.show', $order) }}" class="btn btn-sm btn-outline">Ver detalle</a></td>
                         </tr>
                     @empty

@@ -23,7 +23,7 @@ class TiendaController extends Controller
         if ($tienda) {
             $pedidosRecibidos = Order::query()
                 ->whereHas('items', fn ($query) => $query->where('tienda_id', $tienda->id))
-                ->with(['items' => fn ($query) => $query->where('tienda_id', $tienda->id)])
+                ->with(['items' => fn ($query) => $query->where('tienda_id', $tienda->id), 'orderStatus'])
                 ->latest()
                 ->take(6)
                 ->get();
@@ -54,7 +54,9 @@ class TiendaController extends Controller
             'descripcion'         => ['nullable', 'string', 'max:500', new NoReservedAttackWords],
             'contacto_email'      => 'nullable|email|max:255',
             'contacto_telefono'   => 'nullable|string|max:50',
+            'telefono_visible'     => 'boolean',
             'contacto_whatsapp'   => 'nullable|string|max:50',
+            'permite_whatsapp'     => 'boolean',
             'contacto_direccion'  => ['nullable', 'string', 'max:255', new NoReservedAttackWords],
         ]);
 
@@ -72,7 +74,9 @@ class TiendaController extends Controller
             'descripcion' => $data['descripcion'] ?? null,
             'contacto_email' => $data['contacto_email'] ?? null,
             'contacto_telefono' => $data['contacto_telefono'] ?? null,
+            'telefono_visible' => $request->has('telefono_visible') ? $request->boolean('telefono_visible') : true,
             'contacto_whatsapp' => $data['contacto_whatsapp'] ?? null,
+            'permite_whatsapp' => $request->has('permite_whatsapp') ? $request->boolean('permite_whatsapp') : true,
             'contacto_direccion' => $data['contacto_direccion'] ?? null,
             'activa'      => true,
         ]);
@@ -102,9 +106,18 @@ class TiendaController extends Controller
             'descripcion'         => ['nullable', 'string', 'max:500', new NoReservedAttackWords],
             'contacto_email'      => 'nullable|email|max:255',
             'contacto_telefono'   => 'nullable|string|max:50',
+            'telefono_visible'     => 'boolean',
             'contacto_whatsapp'   => 'nullable|string|max:50',
+            'permite_whatsapp'     => 'boolean',
             'contacto_direccion'  => ['nullable', 'string', 'max:255', new NoReservedAttackWords],
         ]);
+
+        $data['telefono_visible'] = $request->has('telefono_visible')
+            ? $request->boolean('telefono_visible')
+            : $tienda->telefono_visible;
+        $data['permite_whatsapp'] = $request->has('permite_whatsapp')
+            ? $request->boolean('permite_whatsapp')
+            : $tienda->permite_whatsapp;
 
         $tienda->update($data);
 

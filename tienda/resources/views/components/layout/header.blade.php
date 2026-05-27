@@ -1,11 +1,23 @@
 <header class="header-top" role="banner">
     @php
         $quieroVenderUrl = route('register');
+        $quieroVenderLabel = 'Quiero vender';
+        $headerUser = Auth::user();
+        $hasAdminAccess = false;
+        $hasSellerAccess = false;
 
-        if (Auth::check()) {
-            $quieroVenderUrl = Auth::user()->hasRole(['admin', 'vendedor'])
-                ? route('vendedor.panel')
-                : route('cuenta.perfil');
+        if ($headerUser) {
+            $hasAdminAccess = $headerUser->hasRole('admin');
+            $hasSellerAccess = $headerUser->hasRole(['vendedor']) || (bool) $headerUser->tienda;
+            if ($hasAdminAccess) {
+                $quieroVenderUrl = route('admin.dashboard');
+                $quieroVenderLabel = 'Panel admin';
+            } elseif ($hasSellerAccess) {
+                $quieroVenderUrl = route('vendedor.panel');
+                $quieroVenderLabel = 'Mi tienda';
+            } else {
+                $quieroVenderUrl = route('cuenta.perfil');
+            }
         }
     @endphp
 
@@ -56,12 +68,13 @@
                             <span class="dropdown-user-email">{{ Auth::user()->email }}</span>
                         </div>
                         <div class="dropdown-divider"></div>
-                        @if(Auth::user()->hasRole('admin'))
+                        @if($hasAdminAccess)
                             <a href="{{ route('admin.dashboard') }}" class="dropdown-item">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
                                 Panel admin
                             </a>
-                        @elseif(Auth::user()->hasRole('vendedor'))
+                        @endif
+                        @if($hasSellerAccess)
                             <a href="{{ route('vendedor.panel') }}" class="dropdown-item">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
                                 Mi tienda
@@ -83,7 +96,7 @@
                 </div>
             @endguest
 
-            <a href="{{ $quieroVenderUrl }}" class="header-link">Quiero vender</a>
+            <a href="{{ $quieroVenderUrl }}" class="header-link">{{ $quieroVenderLabel }}</a>
             <a href="{{ route('carrito.index') }}" class="header-link cart-btn" aria-label="Carrito">
                 🛒
                 <span class="cart-count hidden" aria-live="polite">0</span>

@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Tienda;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -55,6 +58,55 @@ class ProfileTest extends TestCase
             ->assertDontSee('Aún no tienes compras');
     }
 
+    public function test_user_can_add_and_remove_product_favorite(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createProduct();
+
+        $this->actingAs($user)
+            ->post(route('productos.favorito', $product))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('favorites', [
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('productos.favorito', $product))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('favorites', [
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+        ]);
+    }
+
+    public function test_guest_cannot_add_product_favorite(): void
+    {
+        $product = $this->createProduct();
+
+        $this->post(route('productos.favorito', $product))
+            ->assertRedirect('/login');
+    }
+
+    public function test_profile_page_shows_user_favorites(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createProduct([
+            'nombre' => 'Producto Favorito Cuenta',
+            'slug' => 'producto-favorito-cuenta',
+        ]);
+        $user->favorites()->create(['product_id' => $product->id]);
+
+        $this->actingAs($user)
+            ->get('/mi-cuenta')
+            ->assertOk()
+            ->assertSee('Favoritos')
+            ->assertSee('Producto Favorito Cuenta')
+            ->assertDontSee('Aún no tienes favoritos');
+    }
+
     public function test_cliente_can_activate_seller_role_from_account(): void
     {
         $user = User::factory()->create();
@@ -68,6 +120,42 @@ class ProfileTest extends TestCase
 
         $this->assertTrue($user->hasRole('cliente'));
         $this->assertTrue($user->hasRole('vendedor'));
+    }
+
+    public function test_profile_shows_store_panel_when_user_already_has_store(): void
+    {
+        $user = User::factory()->create();
+        Tienda::create([
+            'user_id' => $user->id,
+            'nombre' => 'Tienda Perfil',
+            'slug' => 'tienda-perfil-'.uniqid(),
+            'descripcion' => 'Tienda existente del usuario.',
+            'activa' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/mi-cuenta')
+            ->assertOk()
+            ->assertSee('Mi tienda')
+            ->assertSee('Tienda Perfil')
+            ->assertSee('Ir a mi tienda')
+            ->assertDontSee('Quiero vender')
+            ->assertDontSee('Activar vendedor');
+    }
+
+    public function test_profile_shows_admin_panel_for_admin_role(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        $this->actingAs($user)
+            ->get('/mi-cuenta')
+            ->assertOk()
+            ->assertSee('Panel admin')
+            ->assertSee('Panel administrador')
+            ->assertSee('Ir al panel admin')
+            ->assertDontSee('Quiero vender')
+            ->assertDontSee('Activar vendedor');
     }
 
     public function test_user_can_view_only_their_order_detail_from_account(): void
@@ -110,7 +198,10 @@ class ProfileTest extends TestCase
             ->assertOk()
             ->assertSee('ORD-CUENTA-002')
             ->assertSee('Producto Detalle')
-            ->assertSee('Tienda Detalle');
+            ->assertSee('Tienda Detalle')
+            ->assertSee('No realices transferencias')
+            ->assertSee('coordinar primero la entrega con la tienda')
+            ->assertSee('responsabilidad de cada tienda');
 
         $this->actingAs($user)
             ->get(route('cuenta.compras.show', $otherOrder))
@@ -225,5 +316,40 @@ class ProfileTest extends TestCase
             ->assertRedirect('/mi-cuenta');
 
         $this->assertNotNull($user->fresh());
+    }
+
+    private function createProduct(array $overrides = []): Product
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = Tienda::create([
+            'user_id' => $vendor->id,
+            'nombre' => 'Tienda Favoritos Test',
+            'slug' => 'tienda-favoritos-test-'.uniqid(),
+            'descripcion' => 'Tienda para favoritos.',
+            'activa' => true,
+        ]);
+        $category = Category::create([
+            'nombre' => 'Categoria Favoritos',
+            'slug' => 'categoria-favoritos-'.uniqid(),
+            'orden' => 1,
+            'activo' => true,
+        ]);
+
+        return Product::create(array_merge([
+            'category_id' => $category->id,
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Favorito Test',
+            'slug' => 'producto-favorito-test-'.uniqid(),
+            'descripcion' => 'Producto para favoritos.',
+            'precio' => 10000,
+            'stock' => 3,
+            'imagen' => 'https://example.com/favorito.jpg',
+            'envio_gratis' => false,
+            'activo' => true,
+            'estado_id' => Product::ESTADO_NUEVO,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            'fecha_publicacion' => now(),
+        ], $overrides));
     }
 }

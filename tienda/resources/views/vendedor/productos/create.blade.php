@@ -11,7 +11,9 @@
                 @csrf
                 @include('vendedor.productos._form')
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar producto</button>
+                    <button type="submit" name="guardar_accion" value="guardar" class="btn btn-primary">Guardar</button>
+                    <button type="submit" name="guardar_accion" value="nuevo" class="btn btn-outline">Guardar y agregar nuevo</button>
+                    <button type="submit" name="guardar_accion" value="listado" class="btn btn-outline">Guardar y volver al listado</button>
                     <a href="{{ route('vendedor.productos.index') }}" class="btn btn-outline">Cancelar</a>
                 </div>
             </form>

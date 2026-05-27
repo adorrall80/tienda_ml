@@ -34,8 +34,22 @@
                         <input type="text" name="contacto_telefono" value="{{ old('contacto_telefono') }}" class="form-input" placeholder="+56 2 2345 6789">
                     </div>
                     <div class="form-group">
+                        <label class="form-check">
+                            <input type="hidden" name="telefono_visible" value="0">
+                            <input type="checkbox" name="telefono_visible" value="1" @checked(old('telefono_visible', true))>
+                            Mostrar teléfono al comprador
+                        </label>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">WhatsApp</label>
                         <input type="text" name="contacto_whatsapp" value="{{ old('contacto_whatsapp') }}" class="form-input" placeholder="+56 9 8765 4321">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-check">
+                            <input type="hidden" name="permite_whatsapp" value="0">
+                            <input type="checkbox" name="permite_whatsapp" value="1" @checked(old('permite_whatsapp', true))>
+                            Permitir contacto por WhatsApp
+                        </label>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Dirección de atención</label>

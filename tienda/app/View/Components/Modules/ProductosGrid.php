@@ -17,11 +17,11 @@ class ProductosGrid extends Component
         public string $tag    = '',
         public int    $limite = 8
     ) {
-        $query = Product::publicados()->with(['tags', 'tienda']);
+        $query = Product::publicados()->with(['tags', 'tienda', 'productCondition'])->withCount('favorites');
         if ($this->tag) {
             $query->conTag($this->tag);
         }
-        $this->productos   = $query->latest()->take($this->limite)->get();
+        $this->productos   = $query->orderByDesc('destacado')->latest()->take($this->limite)->get();
         $this->verTodosUrl = route('productos.index');
     }
 

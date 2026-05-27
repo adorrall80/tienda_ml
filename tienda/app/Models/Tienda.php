@@ -13,13 +13,19 @@ class Tienda extends Model
         'descripcion',
         'contacto_email',
         'contacto_telefono',
+        'telefono_visible',
         'contacto_whatsapp',
+        'permite_whatsapp',
         'contacto_direccion',
         'logo',
         'activa',
     ];
 
-    protected $casts = ['activa' => 'boolean'];
+    protected $casts = [
+        'activa' => 'boolean',
+        'telefono_visible' => 'boolean',
+        'permite_whatsapp' => 'boolean',
+    ];
 
     public function user()
     {

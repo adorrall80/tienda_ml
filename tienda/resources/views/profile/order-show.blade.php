@@ -21,6 +21,14 @@
         <h2>Contacto de tiendas</h2>
         <p>Esta solicitud se coordina directamente con cada tienda. Aqui puedes revisar productos, totales y datos de contacto.</p>
 
+        <div class="checkout-warning-alert" role="alert">
+            <img src="{{ asset('images/alerta-pago.svg') }}" alt="" aria-hidden="true">
+            <div>
+                <strong>Atencion</strong>
+                No realices transferencias ni pagos sin coordinar primero la entrega con la tienda. Cada tienda es independiente y sus acuerdos de pago o entrega son responsabilidad de cada tienda y no son responsabilidad de esta plataforma.
+            </div>
+        </div>
+
         <dl class="checkout-order-meta">
             <div>
                 <dt>Estado</dt>
@@ -53,8 +61,8 @@
                     $store = $items->first()->tienda;
                     $storeName = $store?->nombre ?: $items->first()->tienda_nombre ?: 'Tienda sin nombre';
                     $storeEmail = $store?->contacto_email ?: $store?->user?->email;
-                    $storePhone = $store?->contacto_telefono;
-                    $storeWhatsapp = $store?->contacto_whatsapp;
+                    $storePhone = $store?->telefono_visible ? $store?->contacto_telefono : null;
+                    $storeWhatsapp = $store?->permite_whatsapp ? $store?->contacto_whatsapp : null;
                     $storeAddress = $store?->contacto_direccion;
                     $modalId = 'account-store-contact-modal-'.$loop->iteration;
                 @endphp
@@ -151,7 +159,7 @@
             @forelse($order->statusHistories->sortByDesc('created_at') as $history)
                 <article class="checkout-confirmation-item">
                     <div>
-                        <strong>{{ \App\Models\Order::ESTADOS[$history->estado_nuevo] ?? $history->estado_nuevo }}</strong>
+                        <strong>{{ \App\Models\Order::labelForStatus($history->estado_nuevo) }}</strong>
                         <span>{{ $history->created_at->format('d/m/Y H:i') }}</span>
                     </div>
                     <div>

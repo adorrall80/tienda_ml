@@ -3,9 +3,12 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Category;
+use App\Models\DeliveryType;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderStatus;
 use App\Models\Product;
+use App\Models\ProductCondition;
 use App\Models\SecurityBlockedTerm;
 use App\Models\Tienda;
 use App\Models\User;
@@ -113,8 +116,21 @@ class AdminPanelTest extends TestCase
                 'stock' => 11,
                 'imagen_archivo' => $image,
                 'envio_gratis' => '1',
-                'activo' => '1',
-                'estado' => 'nuevo',
+                'retiro_en_domicilio' => '1',
+                'delivery' => '1',
+                'envio_courier' => '1',
+                'costo_envio' => '3.990',
+                'tiempo_entrega' => '2 a 3 días',
+                'destacado' => '1',
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'estado_revision_id' => Product::REVISION_APROBADO,
+                'atributos' => [
+                    ['nombre' => 'Marca', 'valor' => 'Samsung'],
+                    ['nombre' => 'Color', 'valor' => 'Negro'],
+                    ['nombre' => '', 'valor' => 'Fila vacia ignorada'],
+                ],
+                'guardar_accion' => 'listado',
             ])
             ->assertRedirect('/admin/productos');
 
@@ -129,9 +145,33 @@ class AdminPanelTest extends TestCase
             'precio' => 39990,
             'precio_oferta' => 29990,
             'activo' => true,
+            'retiro_en_domicilio' => true,
+            'delivery' => true,
+            'envio_courier' => true,
+            'costo_envio' => 3990,
+            'tiempo_entrega' => '2 a 3 días',
+            'destacado' => true,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            'estado_revision_id' => Product::REVISION_APROBADO,
         ]);
         $this->assertStringStartsWith('/storage/products/', $product->imagen);
         $this->assertSame('<strong>Producto creado desde admin.</strong>', $product->descripcion);
+        $this->assertDatabaseHas('product_attributes', [
+            'product_id' => $product->id,
+            'nombre' => 'Marca',
+            'valor' => 'Samsung',
+            'orden' => 1,
+        ]);
+        $this->assertDatabaseHas('product_attributes', [
+            'product_id' => $product->id,
+            'nombre' => 'Color',
+            'valor' => 'Negro',
+            'orden' => 2,
+        ]);
+        $this->assertDatabaseMissing('product_attributes', [
+            'product_id' => $product->id,
+            'valor' => 'Fila vacia ignorada',
+        ]);
         Storage::disk('public')->assertExists(str_replace('/storage/', '', $product->imagen));
     }
 
@@ -153,7 +193,8 @@ class AdminPanelTest extends TestCase
             'precio' => 10000,
             'stock' => 5,
             'activo' => true,
-            'estado' => 'nuevo',
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            'estado_id' => Product::ESTADO_NUEVO,
         ]);
 
         Product::create([
@@ -166,7 +207,8 @@ class AdminPanelTest extends TestCase
             'precio' => 10000,
             'stock' => 5,
             'activo' => true,
-            'estado' => 'nuevo',
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            'estado_id' => Product::ESTADO_NUEVO,
         ]);
 
         Product::create([
@@ -179,7 +221,7 @@ class AdminPanelTest extends TestCase
             'precio' => 10000,
             'stock' => 5,
             'activo' => true,
-            'estado' => 'nuevo',
+            'estado_id' => Product::ESTADO_NUEVO,
         ]);
 
         $this->actingAs($admin)
@@ -188,6 +230,113 @@ class AdminPanelTest extends TestCase
             ->assertSee('Producto Visible Admin')
             ->assertSee('Producto Completo Admin')
             ->assertDontSee('Producto Oculto Admin');
+    }
+
+    public function test_admin_products_can_be_paginated_with_selected_page_size(): void
+    {
+        $admin = $this->createAdmin();
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+
+        for ($i = 1; $i <= 12; $i++) {
+            Product::create([
+                'category_id' => $category->id,
+                'tienda_id' => $store->id,
+                'nombre' => 'Producto Paginado Admin '.$i,
+                'slug' => 'producto-paginado-admin-'.$i,
+                'precio' => 10000,
+                'stock' => 5,
+                'activo' => true,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get('/admin/productos?per_page=10')
+            ->assertOk()
+            ->assertViewHas('perPage', 10)
+            ->assertViewHas('productos', fn ($productos) => $productos->perPage() === 10 && $productos->total() === 12);
+    }
+
+    public function test_admin_product_save_actions_redirect_to_new_form_or_edit_form(): void
+    {
+        $admin = $this->createAdmin();
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+
+        $this->actingAs($admin)
+            ->post('/admin/productos', [
+                'nombre' => 'Producto Admin Nuevo Siguiente',
+                'category_id' => $category->id,
+                'tienda_id' => $store->id,
+                'precio' => 29990,
+                'stock' => 11,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'guardar_accion' => 'nuevo',
+            ])
+            ->assertRedirect(route('admin.productos.create'));
+
+        $product = Product::create([
+            'category_id' => $category->id,
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Admin Guardar Edit',
+            'slug' => 'producto-admin-guardar-edit',
+            'precio' => 29990,
+            'stock' => 11,
+            'activo' => true,
+            'estado_id' => Product::ESTADO_NUEVO,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+        ]);
+
+        $this->actingAs($admin)
+            ->put('/admin/productos/'.$product->id, [
+                'nombre' => 'Producto Admin Guardar Editado',
+                'category_id' => $category->id,
+                'tienda_id' => $store->id,
+                'precio' => 29990,
+                'stock' => 11,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'guardar_accion' => 'guardar',
+            ])
+            ->assertRedirect(route('admin.productos.edit', $product));
+    }
+
+    public function test_admin_can_preview_product_from_editor(): void
+    {
+        $admin = $this->createAdmin();
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = Product::create([
+            'category_id' => $category->id,
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Preview Admin',
+            'slug' => 'producto-preview-admin',
+            'precio' => 10000,
+            'stock' => 5,
+            'activo' => false,
+            'estado_id' => Product::ESTADO_NUEVO,
+            'estado_publicacion_id' => Product::PUBLICACION_PAUSADO,
+            'estado_revision_id' => Product::REVISION_PENDIENTE,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.productos.edit', $product))
+            ->assertOk()
+            ->assertSee('Vista previa');
+
+        $this->actingAs($admin)
+            ->get(route('admin.productos.preview', $product))
+            ->assertOk()
+            ->assertSee('Producto Preview Admin');
     }
 
     public function test_admin_product_image_must_be_an_image_file(): void
@@ -207,9 +356,90 @@ class AdminPanelTest extends TestCase
                 'precio' => 29990,
                 'stock' => 11,
                 'imagen_archivo' => $file,
-                'estado' => 'nuevo',
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
             ])
             ->assertSessionHasErrors('imagen_archivo');
+    }
+
+    public function test_admin_can_upload_and_delete_product_gallery_images(): void
+    {
+        Storage::fake('public');
+        $admin = $this->createAdmin();
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = Product::create([
+            'category_id' => $category->id,
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Galeria Admin',
+            'slug' => 'producto-galeria-admin',
+            'precio' => 10000,
+            'stock' => 5,
+            'activo' => true,
+            'estado_id' => Product::ESTADO_NUEVO,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+        ]);
+
+        $this->actingAs($admin)
+            ->put('/admin/productos/'.$product->id, [
+                'nombre' => 'Producto Galeria Admin',
+                'category_id' => $category->id,
+                'tienda_id' => $store->id,
+                'precio' => 10000,
+                'stock' => 5,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'galeria_archivos' => [
+                    UploadedFile::fake()->image('galeria-admin-1.jpg'),
+                    UploadedFile::fake()->image('galeria-admin-2.webp'),
+                ],
+            ])
+            ->assertRedirect(route('admin.productos.edit', $product));
+
+        $this->assertCount(2, $product->fresh()->images);
+
+        $image = $product->fresh()->images()->firstOrFail();
+        Storage::disk('public')->assertExists(str_replace('/storage/', '', $image->imagen));
+
+        $this->actingAs($admin)
+            ->delete(route('admin.productos.imagenes.destroy', [$product, $image]))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('product_images', ['id' => $image->id]);
+        Storage::disk('public')->assertMissing(str_replace('/storage/', '', $image->imagen));
+    }
+
+    public function test_admin_can_reorder_product_gallery_images(): void
+    {
+        $admin = $this->createAdmin();
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = Product::create([
+            'category_id' => $category->id,
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Orden Galeria Admin',
+            'slug' => 'producto-orden-galeria-admin',
+            'precio' => 10000,
+            'stock' => 5,
+            'activo' => true,
+            'estado_id' => Product::ESTADO_NUEVO,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+        ]);
+        $first = $product->images()->create(['imagen' => 'https://example.com/a.jpg', 'orden' => 1]);
+        $second = $product->images()->create(['imagen' => 'https://example.com/b.jpg', 'orden' => 2]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.productos.imagenes.orden', [$product, $second]), [
+                'direction' => 'up',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(2, $first->fresh()->orden);
+        $this->assertSame(1, $second->fresh()->orden);
     }
 
     public function test_admin_can_delete_another_user(): void
@@ -485,13 +715,241 @@ class AdminPanelTest extends TestCase
                 'tienda_id' => $store->id,
                 'precio' => 29990,
                 'stock' => 11,
-                'estado' => 'nuevo',
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
             ])
             ->assertSessionHasErrors('nombre');
 
         $this->assertDatabaseMissing('products', [
             'nombre' => 'Producto payloadtest',
         ]);
+    }
+
+    public function test_admin_can_manage_delivery_types(): void
+    {
+        $admin = $this->createAdmin();
+        $retiro = DeliveryType::where('slug', 'retiro-en-domicilio')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.mantenedores.tipos-entrega.index'))
+            ->assertOk()
+            ->assertSee('Tipos de entrega')
+            ->assertSee($retiro->nombre);
+
+        $this->actingAs($admin)
+            ->post(route('admin.mantenedores.tipos-entrega.store'), [
+                'nombre' => 'Punto de encuentro',
+                'orden' => 4,
+                'activo' => '1',
+            ])
+            ->assertRedirect();
+
+        $deliveryType = DeliveryType::where('slug', 'punto-de-encuentro')->firstOrFail();
+
+        $this->assertDatabaseHas('delivery_types', [
+            'id' => $deliveryType->id,
+            'nombre' => 'Punto de encuentro',
+            'orden' => 4,
+            'activo' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.mantenedores.tipos-entrega.update', $deliveryType), [
+                'nombre' => 'Punto acordado',
+                'orden' => 5,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('delivery_types', [
+            'id' => $deliveryType->id,
+            'nombre' => 'Punto acordado',
+            'slug' => 'punto-acordado',
+            'orden' => 5,
+            'activo' => false,
+        ]);
+
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = Product::create([
+            'category_id' => $category->id,
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Con Entrega',
+            'slug' => 'producto-con-entrega',
+            'precio' => 10000,
+            'stock' => 5,
+            'activo' => true,
+            'estado_id' => Product::ESTADO_NUEVO,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+        ]);
+        $product->deliveryTypes()->sync([$retiro->id]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.mantenedores.tipos-entrega.destroy', $retiro))
+            ->assertSessionHasErrors('delivery_type');
+
+        $this->assertDatabaseHas('delivery_types', ['id' => $retiro->id]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.mantenedores.tipos-entrega.index', ['tipo' => $retiro->id]))
+            ->assertOk()
+            ->assertSee('Productos asociados: '.$retiro->nombre)
+            ->assertSee('Producto Con Entrega')
+            ->assertSee('Editar producto');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.mantenedores.tipos-entrega.destroy', $deliveryType))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('delivery_types', ['id' => $deliveryType->id]);
+    }
+
+    public function test_admin_can_manage_product_conditions(): void
+    {
+        $admin = $this->createAdmin();
+        $nuevo = ProductCondition::where('slug', 'nuevo')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.mantenedores.estados-producto.index'))
+            ->assertOk()
+            ->assertSee('Estados de producto')
+            ->assertSee($nuevo->nombre);
+
+        $this->actingAs($admin)
+            ->post(route('admin.mantenedores.estados-producto.store'), [
+                'nombre' => 'Semi nuevo',
+                'orden' => 4,
+                'activo' => '1',
+            ])
+            ->assertRedirect();
+
+        $condition = ProductCondition::where('slug', 'semi-nuevo')->firstOrFail();
+
+        $this->assertDatabaseHas('product_conditions', [
+            'id' => $condition->id,
+            'nombre' => 'Semi nuevo',
+            'orden' => 4,
+            'activo' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.mantenedores.estados-producto.update', $condition), [
+                'nombre' => 'Casi nuevo',
+                'orden' => 5,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('product_conditions', [
+            'id' => $condition->id,
+            'nombre' => 'Casi nuevo',
+            'slug' => 'casi-nuevo',
+            'orden' => 5,
+            'activo' => false,
+        ]);
+
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        Product::create([
+            'category_id' => $category->id,
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Con Estado',
+            'slug' => 'producto-con-estado',
+            'precio' => 10000,
+            'stock' => 5,
+            'activo' => true,
+            'estado_id' => $nuevo->id,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.mantenedores.estados-producto.destroy', $nuevo))
+            ->assertSessionHasErrors('condition');
+
+        $this->assertDatabaseHas('product_conditions', ['id' => $nuevo->id]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.mantenedores.estados-producto.index', ['estado' => $nuevo->id]))
+            ->assertOk()
+            ->assertSee('Productos asociados: '.$nuevo->nombre)
+            ->assertSee('Producto Con Estado')
+            ->assertSee('Editar producto');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.mantenedores.estados-producto.destroy', $condition))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('product_conditions', ['id' => $condition->id]);
+    }
+
+    public function test_admin_can_manage_order_statuses(): void
+    {
+        $admin = $this->createAdmin();
+        $pending = OrderStatus::where('slug', 'pendiente')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.mantenedores.estados-pedido.index'))
+            ->assertOk()
+            ->assertSee('Estados de pedido')
+            ->assertSee($pending->nombre);
+
+        $this->actingAs($admin)
+            ->post(route('admin.mantenedores.estados-pedido.store'), [
+                'nombre' => 'Listo para retiro',
+                'orden' => 6,
+                'activo' => '1',
+            ])
+            ->assertRedirect();
+
+        $status = OrderStatus::where('slug', 'listo-para-retiro')->firstOrFail();
+
+        $this->assertDatabaseHas('order_statuses', [
+            'id' => $status->id,
+            'nombre' => 'Listo para retiro',
+            'orden' => 6,
+            'activo' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.mantenedores.estados-pedido.update', $status), [
+                'nombre' => 'Retiro listo',
+                'orden' => 7,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('order_statuses', [
+            'id' => $status->id,
+            'nombre' => 'Retiro listo',
+            'slug' => 'retiro-listo',
+            'orden' => 7,
+            'activo' => false,
+        ]);
+
+        $order = $this->createOrder([
+            'numero' => 'ORD-STATUS-001',
+            'estado' => 'pendiente',
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.mantenedores.estados-pedido.destroy', $pending))
+            ->assertSessionHasErrors('status');
+
+        $this->assertDatabaseHas('order_statuses', ['id' => $pending->id]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.mantenedores.estados-pedido.index', ['estado' => $pending->slug]))
+            ->assertOk()
+            ->assertSee('Pedidos asociados: '.$pending->nombre)
+            ->assertSee($order->numero)
+            ->assertSee('Ver pedido');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.mantenedores.estados-pedido.destroy', $status))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('order_statuses', ['id' => $status->id]);
     }
 
     private function createAdmin(): User
@@ -509,6 +967,7 @@ class AdminPanelTest extends TestCase
             'slug' => 'categoria-admin-test',
             'orden' => 1,
             'activo' => true,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
         ], $overrides));
     }
 

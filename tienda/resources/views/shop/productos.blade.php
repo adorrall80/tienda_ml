@@ -23,10 +23,19 @@
 {{-- Listing --}}
 <div class="container">
     <div class="listing-layout">
+        @php
+            $hasActiveFilters = collect(['q', 'cat', 'estado_id', 'delivery_type_id', 'envio_gratis', 'precio_min', 'precio_max'])
+                ->contains(fn ($key) => request()->filled($key));
+        @endphp
 
         {{-- ===== SIDEBAR ===== --}}
         <aside class="sidebar" aria-label="Filtros">
             <form method="GET" action="{{ route('productos.index') }}" id="filter-form">
+                @if($hasActiveFilters)
+                    <a href="{{ route('productos.index', request()->only(['orden', 'per_page'])) }}" class="clear-filters-btn">
+                        Limpiar filtros
+                    </a>
+                @endif
 
                 @if(request()->filled('q'))
                     <input type="hidden" name="q" value="{{ request('q') }}">
@@ -80,19 +89,19 @@
                     <h3>Estado</h3>
                     <div class="filter-option">
                         <label>
-                            <input type="radio" name="estado" value=""
+                            <input type="radio" name="estado_id" value=""
                                    onchange="this.form.submit()"
-                                   {{ !request('estado') ? 'checked' : '' }}>
+                                   {{ !request('estado_id') ? 'checked' : '' }}>
                             Todos
                         </label>
                     </div>
-                    @foreach(\App\Models\Product::ESTADOS as $valor => $label)
+                    @foreach($productConditions as $condition)
                     <div class="filter-option">
                         <label>
-                            <input type="radio" name="estado" value="{{ $valor }}"
+                            <input type="radio" name="estado_id" value="{{ $condition->id }}"
                                    onchange="this.form.submit()"
-                                   {{ request('estado') === $valor ? 'checked' : '' }}>
-                            {{ $label }}
+                                   {{ (int) request('estado_id') === $condition->id ? 'checked' : '' }}>
+                            {{ $condition->nombre }}
                         </label>
                     </div>
                     @endforeach
@@ -111,6 +120,29 @@
                     </div>
                 </div>
 
+                {{-- Entrega --}}
+                <div class="filter-box">
+                    <h3>Entrega</h3>
+                    <div class="filter-option">
+                        <label>
+                            <input type="radio" name="delivery_type_id" value=""
+                                   onchange="this.form.submit()"
+                                   {{ !request('delivery_type_id') ? 'checked' : '' }}>
+                            Todas
+                        </label>
+                    </div>
+                    @foreach($deliveryTypes as $deliveryType)
+                    <div class="filter-option">
+                        <label>
+                            <input type="radio" name="delivery_type_id" value="{{ $deliveryType->id }}"
+                                   onchange="this.form.submit()"
+                                   {{ (int) request('delivery_type_id') === $deliveryType->id ? 'checked' : '' }}>
+                            {{ $deliveryType->nombre }}
+                        </label>
+                    </div>
+                    @endforeach
+                </div>
+
             </form>
         </aside>
 
@@ -124,6 +156,11 @@
                         &#9881; Filtros
                     </button>
                     <div class="active-filters">
+                        @if($hasActiveFilters)
+                            <a href="{{ route('productos.index', request()->only(['orden', 'per_page'])) }}" class="clear-filters-inline">
+                                Limpiar filtros
+                            </a>
+                        @endif
                         @if($categoriaActual)
                             <span class="filter-tag">
                                 {{ $categoriaActual->nombre }}
@@ -134,6 +171,15 @@
                             <span class="filter-tag">
                                 Envío gratis
                                 <a href="{{ route('productos.index', request()->except(['envio_gratis', 'page'])) }}">×</a>
+                            </span>
+                        @endif
+                        @php
+                            $selectedDeliveryType = $deliveryTypes->firstWhere('id', (int) request('delivery_type_id'));
+                        @endphp
+                        @if($selectedDeliveryType)
+                            <span class="filter-tag">
+                                Entrega: {{ $selectedDeliveryType->nombre }}
+                                <a href="{{ route('productos.index', request()->except(['delivery_type_id', 'page'])) }}">×</a>
                             </span>
                         @endif
                         @if(request('q'))
@@ -148,10 +194,13 @@
                                 <a href="{{ route('productos.index', request()->except(['precio_min', 'precio_max', 'page'])) }}">×</a>
                             </span>
                         @endif
-                        @if(request('estado') && array_key_exists(request('estado'), \App\Models\Product::ESTADOS))
+                        @php
+                            $selectedCondition = $productConditions->firstWhere('id', (int) request('estado_id'));
+                        @endphp
+                        @if($selectedCondition)
                             <span class="filter-tag">
-                                Estado: {{ \App\Models\Product::ESTADOS[request('estado')] }}
-                                <a href="{{ route('productos.index', request()->except(['estado', 'page'])) }}">×</a>
+                                Estado: {{ $selectedCondition->nombre }}
+                                <a href="{{ route('productos.index', request()->except(['estado_id', 'page'])) }}">×</a>
                             </span>
                         @endif
                     </div>

@@ -21,6 +21,14 @@
         <h2>Recibimos tu solicitud</h2>
         <p>Esta tienda no tiene pago en linea por ahora. Usa los datos de contacto para coordinar la compra directamente con cada vendedor.</p>
 
+        <div class="checkout-warning-alert" role="alert">
+            <img src="{{ asset('images/alerta-pago.svg') }}" alt="" aria-hidden="true">
+            <div>
+                <strong>Atencion</strong>
+                No realices transferencias ni pagos sin coordinar primero la entrega con la tienda. Cada tienda es independiente y sus acuerdos de pago o entrega son responsabilidad de cada tienda y no son responsabilidad de esta plataforma.
+            </div>
+        </div>
+
         <dl class="checkout-order-meta">
             <div>
                 <dt>Cliente</dt>
@@ -54,8 +62,8 @@
                     $store = $items->first()->tienda;
                     $storeName = $store?->nombre ?: $items->first()->tienda_nombre ?: 'Tienda sin nombre';
                     $storeEmail = $store?->contacto_email ?: $store?->user?->email;
-                    $storePhone = $store?->contacto_telefono;
-                    $storeWhatsapp = $store?->contacto_whatsapp;
+                    $storePhone = $store?->telefono_visible ? $store?->contacto_telefono : null;
+                    $storeWhatsapp = $store?->permite_whatsapp ? $store?->contacto_whatsapp : null;
                     $storeAddress = $store?->contacto_direccion;
                     $modalId = 'store-contact-modal-'.$loop->iteration;
                 @endphp
@@ -128,10 +136,25 @@
                         <h3>Productos de esta tienda</h3>
                         <div class="checkout-confirmation-items">
                             @foreach ($items as $item)
+                                @php
+                                    $product = $item->product;
+                                    $deliveryOptions = $product?->delivery_type_labels ?? collect();
+                                    $deliveryCost = $product?->envio_gratis
+                                        ? 'Gratis'
+                                        : ($product?->costo_envio !== null ? '$' . number_format($product->costo_envio, 0, ',', '.') : 'A coordinar');
+                                @endphp
                                 <article class="checkout-confirmation-item">
                                     <div>
                                         <strong>{{ $item->producto_nombre }}</strong>
                                         <span>{{ $item->cantidad }} {{ $item->cantidad === 1 ? 'unidad' : 'unidades' }}</span>
+                                        <span>
+                                            Entrega:
+                                            {{ $deliveryOptions->isNotEmpty() ? $deliveryOptions->join(', ') : 'A coordinar' }}
+                                            · Costo {{ $deliveryCost }}
+                                            @if($product?->tiempo_entrega)
+                                                · {{ $product->tiempo_entrega }}
+                                            @endif
+                                        </span>
                                     </div>
                                     <div>
                                         <span>${{ number_format($item->precio_unitario, 0, ',', '.') }} c/u</span>

@@ -25,6 +25,10 @@
     $tiendaNombre = $producto->tienda?->nombre ?? 'Vendedor';
     $tiendaDescripcion = $producto->tienda?->descripcion;
     $tiendaInicial = strtoupper(substr($tiendaNombre, 0, 1));
+    $deliveryOptions = $producto->delivery_type_labels;
+    $costoEnvioTexto = $producto->envio_gratis
+        ? 'Gratis'
+        : ($producto->costo_envio !== null ? '$' . number_format($producto->costo_envio, 0, ',', '.') : 'A coordinar');
 @endphp
 
 {{-- Page Header --}}
@@ -73,12 +77,17 @@
 
                 {{-- Info --}}
                 <p class="detail-condition">
-                    @if($producto->estado)
-                        <span class="detail-estado detail-estado--{{ $producto->estado }}">
-                            Estado: {{ \App\Models\Product::ESTADOS[$producto->estado] }}
+                    @if($producto->estado_id)
+                        <span class="detail-estado detail-estado--{{ $producto->estado_slug }}">
+                            Estado: {{ $producto->estado_label }}
                         </span>
                         |
                     @endif
+                    @if($producto->fecha_publicacion)
+                        Publicado: {{ $producto->fecha_publicacion->format('d/m/Y') }} |
+                    @endif
+                    {{ number_format($producto->visitas, 0, ',', '.') }} visitas |
+                    {{ number_format($producto->favorites_count, 0, ',', '.') }} favoritos |
                     <a href="#">Reportar</a>
                 </p>
 
@@ -108,6 +117,17 @@
                     <div>
                         <span class="detail-shipping-badge">&#128666; Envío gratis</span>
                         <span class="detail-muted-inline">Coordina entrega con la tienda</span>
+                    </div>
+                @endif
+                @if($deliveryOptions->isNotEmpty() || $producto->tiempo_entrega || $producto->costo_envio !== null)
+                    <div class="delivery-summary">
+                        @foreach($deliveryOptions as $option)
+                            <span>{{ $option }}</span>
+                        @endforeach
+                        <span>Costo: {{ $costoEnvioTexto }}</span>
+                        @if($producto->tiempo_entrega)
+                            <span>Tiempo: {{ $producto->tiempo_entrega }}</span>
+                        @endif
                     </div>
                 @endif
 
@@ -150,6 +170,19 @@
                             data-slug="{{ $producto->slug }}">
                         Agregar al carrito
                     </button>
+                </div>
+                <div class="favorite-action-wrap">
+                    @auth
+                        <form method="POST" action="{{ route('productos.favorito', $producto) }}">
+                            @csrf
+                            <button type="submit" class="btn-favorite {{ $isFavorited ? 'active' : '' }}">
+                                {{ $isFavorited ? 'Quitar de favoritos' : 'Guardar favorito' }}
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn-favorite">Ingresa para guardar favorito</a>
+                    @endauth
+                    <span>{{ number_format($producto->favorites_count, 0, ',', '.') }} {{ $producto->favorites_count === 1 ? 'persona lo guardó' : 'personas lo guardaron' }}</span>
                 </div>
 
                 {{-- Mobile: vendedor y coordinacion --}}
@@ -211,11 +244,23 @@
                                 @endif
                                 <tr><td>Categoría</td><td>{{ $producto->category?->nombre ?? '—' }}</td></tr>
                                 <tr><td>Stock disponible</td><td>{{ $producto->stock }} unidades</td></tr>
+                                @if($producto->fecha_publicacion)
+                                <tr><td>Publicado</td><td>{{ $producto->fecha_publicacion->format('d/m/Y') }}</td></tr>
+                                @endif
+                                <tr><td>Visitas</td><td>{{ number_format($producto->visitas, 0, ',', '.') }}</td></tr>
+                                <tr><td>Favoritos</td><td>{{ number_format($producto->favorites_count, 0, ',', '.') }}</td></tr>
                                 @if($orig)
                                 <tr><td>Precio normal</td><td>{{ $orig }}</td></tr>
                                 @endif
                                 <tr><td>Precio</td><td>{{ $precio }}</td></tr>
-                                <tr><td>Envío</td><td>{{ $producto->envio_gratis ? 'Envío gratis' : 'Con costo de envío' }}</td></tr>
+                                <tr><td>Entrega</td><td>{{ $deliveryOptions->isNotEmpty() ? $deliveryOptions->join(', ') : 'A coordinar con la tienda' }}</td></tr>
+                                <tr><td>Costo envío</td><td>{{ $costoEnvioTexto }}</td></tr>
+                                @if($producto->tiempo_entrega)
+                                <tr><td>Tiempo entrega</td><td>{{ $producto->tiempo_entrega }}</td></tr>
+                                @endif
+                                @foreach($producto->productAttributes as $attribute)
+                                <tr><td>{{ $attribute->nombre }}</td><td>{{ $attribute->valor }}</td></tr>
+                                @endforeach
                                 <tr><td>Calificación</td><td>{{ $stars }} {{ number_format($producto->rating, 1) }}/5</td></tr>
                             </tbody>
                         </table>
@@ -270,17 +315,20 @@
                     {{-- Envío --}}
                     <div class="tab-content" id="tab-shipping" role="tabpanel">
                         <div class="description-text">
-                            <h4>{{ $producto->envio_gratis ? 'Envío gratis a todo Chile' : 'Envío a todo Chile' }}</h4>
-                            <p>El tiempo estimado de entrega depende de tu ubicación:</p>
-                            <ul>
-                                <li><strong>Región Metropolitana:</strong> 1–2 días hábiles</li>
-                                <li><strong>Ciudades principales (V, VIII, IX):</strong> 2–3 días hábiles</li>
-                                <li><strong>Regiones extremas (I, XI, XII, XV):</strong> 4–7 días hábiles</li>
-                            </ul>
-                            <h4>Política de devoluciones</h4>
-                            <p>Tienes 30 días para devolver el producto si no estás satisfecho. El producto debe estar en las mismas condiciones en que fue recibido.</p>
-                            <h4>Garantía</h4>
-                            <p>Este producto incluye garantía oficial de 12 meses. En caso de defecto de fábrica, el vendedor se hará cargo sin costo.</p>
+                            <h4>Opciones de entrega</h4>
+                            @if($deliveryOptions->isNotEmpty())
+                                <ul>
+                                    @foreach($deliveryOptions as $option)
+                                        <li>{{ $option }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p>La entrega se coordina directamente con la tienda.</p>
+                            @endif
+                            <h4>Costo y tiempo</h4>
+                            <p><strong>Costo estimado:</strong> {{ $costoEnvioTexto }}</p>
+                            <p><strong>Tiempo estimado:</strong> {{ $producto->tiempo_entrega ?: 'A coordinar con la tienda' }}</p>
+                            <p>Esta información es referencial. La entrega y el pago final se acuerdan por contacto directo con la tienda.</p>
                         </div>
                     </div>
                 </div>
@@ -321,6 +369,13 @@
                 <div class="buy-box-meta">
                     <div>&#128230; Stock: <strong>{{ $producto->stock }} unidades</strong></div>
                     <div>&#127978; Tienda: <strong>{{ $tiendaNombre }}</strong></div>
+                    <div>
+                        &#128666; Entrega:
+                        <strong>{{ $deliveryOptions->isNotEmpty() ? $deliveryOptions->join(', ') : 'A coordinar' }}</strong>
+                    </div>
+                    @if($producto->tiempo_entrega)
+                        <div>&#9201; Tiempo: <strong>{{ $producto->tiempo_entrega }}</strong></div>
+                    @endif
                     <div>&#128222; El cierre se coordina por contacto con la tienda</div>
                 </div>
 

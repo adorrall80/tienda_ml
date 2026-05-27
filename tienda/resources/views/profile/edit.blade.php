@@ -1,5 +1,11 @@
 <x-layouts.shop title="Mi cuenta">
 
+@php
+    $hasAdminAccess = $user->hasRole('admin');
+    $hasSellerAccess = $user->hasRole('vendedor') || $user->tienda;
+    $workTabLabel = $hasAdminAccess ? 'Panel admin' : ($hasSellerAccess ? 'Mi tienda' : 'Vender');
+@endphp
+
 <div class="container" style="padding-top:28px; padding-bottom:48px;">
 
     {{-- Encabezado --}}
@@ -14,8 +20,9 @@
     {{-- Tabs --}}
     <div class="cuenta-tabs">
         <button class="cuenta-tab active" data-tab="compras">Mis compras</button>
+        <button class="cuenta-tab" data-tab="favoritos">Favoritos</button>
         <button class="cuenta-tab" data-tab="perfil">Mis datos</button>
-        <button class="cuenta-tab" data-tab="vender">Vender</button>
+        <button class="cuenta-tab" data-tab="vender">{{ $workTabLabel }}</button>
         <button class="cuenta-tab" data-tab="clave">Cambiar contraseña</button>
     </div>
 
@@ -38,7 +45,7 @@
                             </div>
 
                             <div class="compra-meta">
-                                <span>{{ ucfirst($order->estado) }}</span>
+                                <span>{{ $order->estadoLabel() }}</span>
                                 <span>{{ $order->items->count() }} {{ $order->items->count() === 1 ? 'producto' : 'productos' }}</span>
                                 <span>{{ $order->items->pluck('tienda_nombre')->filter()->unique()->count() }} {{ $order->items->pluck('tienda_nombre')->filter()->unique()->count() === 1 ? 'tienda' : 'tiendas' }}</span>
                             </div>
@@ -76,6 +83,28 @@
                 <p class="compras-empty-sub">Cuando realices un pedido, aparecerá aquí.</p>
                 <a href="{{ route('productos.index') }}" class="btn-comprar">Ver productos</a>
             </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Tab: Favoritos --}}
+    <div class="cuenta-panel" id="tab-favoritos">
+        <div class="cuenta-card cuenta-card-wide">
+            @if($favoriteProducts->isNotEmpty())
+                <div class="cuenta-favorites-grid">
+                    @foreach($favoriteProducts as $producto)
+                        <x-modules.product-card :producto="$producto" />
+                    @endforeach
+                </div>
+            @else
+                <div class="compras-empty">
+                    <svg width="64" height="64" fill="none" stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/>
+                    </svg>
+                    <p class="compras-empty-title">Aún no tienes favoritos</p>
+                    <p class="compras-empty-sub">Guarda productos que quieras revisar después.</p>
+                    <a href="{{ route('productos.index') }}" class="btn-comprar">Ver productos</a>
+                </div>
             @endif
         </div>
     </div>
@@ -119,10 +148,22 @@
     {{-- Tab: Vender --}}
     <div class="cuenta-panel" id="tab-vender">
         <div class="cuenta-card">
-            @if($user->hasRole('vendedor'))
-                <h2 class="cuenta-section-title">Tu perfil vendedor está activo</h2>
-                <p class="cuenta-helper-text">Puedes comprar como cliente y vender desde tu tienda.</p>
-                <a href="{{ route('vendedor.panel') }}" class="btn-cuenta cuenta-action-link">Ir a mi tienda</a>
+            @if($hasAdminAccess)
+                <h2 class="cuenta-section-title">Panel administrador</h2>
+                <p class="cuenta-helper-text">Tu perfil administrador está activo. Puedes gestionar usuarios, tiendas, productos, pedidos y seguridad.</p>
+                <a href="{{ route('admin.dashboard') }}" class="btn-cuenta cuenta-action-link">Ir al panel admin</a>
+            @elseif($hasSellerAccess)
+                <h2 class="cuenta-section-title">Mi tienda</h2>
+                <p class="cuenta-helper-text">
+                    @if($user->tienda)
+                        Tu tienda {{ $user->tienda->nombre }} está disponible. Puedes comprar como cliente y vender desde tu tienda.
+                    @else
+                        Tu perfil vendedor está activo. Crea tu tienda para publicar productos.
+                    @endif
+                </p>
+                <a href="{{ $user->tienda ? route('vendedor.panel') : route('vendedor.tienda.create') }}" class="btn-cuenta cuenta-action-link">
+                    {{ $user->tienda ? 'Ir a mi tienda' : 'Crear mi tienda' }}
+                </a>
             @else
                 <h2 class="cuenta-section-title">Quiero vender</h2>
                 <p class="cuenta-helper-text">Al activar vendedor mantendrás tus opciones de cliente y podrás crear una tienda para publicar productos.</p>

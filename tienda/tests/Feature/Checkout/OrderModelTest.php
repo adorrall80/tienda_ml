@@ -61,7 +61,7 @@ class OrderModelTest extends TestCase
             'stock' => 5,
             'imagen' => 'https://example.com/product.jpg',
             'activo' => true,
-            'estado' => 'nuevo',
+            'estado_id' => Product::ESTADO_NUEVO,
         ]);
         $order = Order::create([
             'numero' => 'ORD-TEST-002',

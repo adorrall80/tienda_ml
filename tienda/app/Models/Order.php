@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class Order extends Model
 {
     public const ESTADOS = [
         'pendiente' => 'Pendiente',
         'confirmado' => 'Confirmado',
+        'preparado' => 'Preparado',
         'cancelado' => 'Cancelado',
-        'enviado' => 'Enviado',
         'entregado' => 'Entregado',
     ];
 
@@ -52,6 +54,11 @@ class Order extends Model
         return $this->hasMany(OrderStatusHistory::class);
     }
 
+    public function orderStatus()
+    {
+        return $this->belongsTo(OrderStatus::class, 'estado', 'slug');
+    }
+
     public function internalNotes()
     {
         return $this->hasMany(OrderInternalNote::class);
@@ -59,7 +66,53 @@ class Order extends Model
 
     public function estadoLabel(): string
     {
-        return self::ESTADOS[$this->estado] ?? ucfirst((string) $this->estado);
+        if ($this->relationLoaded('orderStatus') && $this->orderStatus) {
+            return $this->orderStatus->nombre;
+        }
+
+        return self::labelForStatus($this->estado);
+    }
+
+    public static function statusOptions(bool $onlyActive = true): array
+    {
+        try {
+            if (! Schema::hasTable('order_statuses')) {
+                return self::ESTADOS;
+            }
+
+            $query = OrderStatus::query()->orderBy('orden')->orderBy('nombre');
+
+            if ($onlyActive) {
+                $query->activos();
+            }
+
+            $options = $query->pluck('nombre', 'slug')->all();
+
+            return $options ?: self::ESTADOS;
+        } catch (QueryException) {
+            return self::ESTADOS;
+        }
+    }
+
+    public static function labelForStatus(?string $status): string
+    {
+        if (! $status) {
+            return 'Sin estado';
+        }
+
+        try {
+            if (Schema::hasTable('order_statuses')) {
+                $label = OrderStatus::where('slug', $status)->value('nombre');
+
+                if ($label) {
+                    return $label;
+                }
+            }
+        } catch (QueryException) {
+            //
+        }
+
+        return self::ESTADOS[$status] ?? ucfirst((string) $status);
     }
 
     public function nextActionLabel(): string
@@ -67,7 +120,7 @@ class Order extends Model
         return match ($this->estado) {
             'pendiente' => 'Contactar a la tienda para coordinar la solicitud.',
             'confirmado' => 'Coordinar entrega o retiro directamente con la tienda.',
-            'enviado' => 'Esperar la confirmacion de entrega.',
+            'preparado' => 'La tienda preparo la solicitud. Coordina retiro o entrega directamente.',
             'entregado' => 'Solicitud entregada. Guarda este detalle como respaldo.',
             'cancelado' => 'Solicitud cancelada. Si corresponde, contacta a la tienda.',
             default => 'Revisar el estado de la solicitud.',

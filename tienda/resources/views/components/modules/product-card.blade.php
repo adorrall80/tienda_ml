@@ -13,6 +13,7 @@
                  : null;
     $stars   = str_repeat('★', (int) round($producto->rating))
              . str_repeat('☆', 5 - (int) round($producto->rating));
+    $deliveryOptions = $producto->delivery_type_labels;
 @endphp
 
 <article class="product-card">
@@ -26,7 +27,9 @@
                     <span>Sin imagen</span>
                 </div>
             @endif
-            @if($isNuevo)
+            @if($producto->destacado)
+                <span class="product-badge featured">DESTACADO</span>
+            @elseif($isNuevo)
                 <span class="product-badge new">NUEVO</span>
             @elseif($isHot)
                 <span class="product-badge hot">HOT</span>
@@ -35,9 +38,9 @@
             @endif
         </div>
         <div class="product-info">
-            @if($producto->estado)
-                <span class="product-estado product-estado--{{ $producto->estado }}">
-                    Estado: {{ \App\Models\Product::ESTADOS[$producto->estado] }}
+            @if($producto->estado_id)
+                <span class="product-estado product-estado--{{ $producto->estado_slug }}">
+                    Estado: {{ $producto->estado_label }}
                 </span>
             @endif
             <h3 class="product-title">{{ $producto->nombre }}</h3>
@@ -57,6 +60,12 @@
             @endif
             @if($producto->envio_gratis)
                 <p class="product-shipping">Envío gratis</p>
+            @endif
+            @if($deliveryOptions->isNotEmpty())
+                <p class="product-delivery-options">{{ $deliveryOptions->take(2)->join(' · ') }}</p>
+            @endif
+            @if(isset($producto->favorites_count) && $producto->favorites_count > 0)
+                <p class="product-favorites">{{ number_format($producto->favorites_count, 0, ',', '.') }} favoritos</p>
             @endif
             @if($producto->rating)
                 <div class="product-rating">

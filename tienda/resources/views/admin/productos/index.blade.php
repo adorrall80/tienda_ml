@@ -1,25 +1,5 @@
 <x-layouts.panel title="Productos">
-    <x-slot name="nav">
-        <span class="nav-section-label">Principal</span>
-        <a href="{{ route('admin.dashboard') }}" class="nav-item">
-            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            Dashboard
-        </a>
-        <span class="nav-section-label">Catálogo</span>
-        <a href="{{ route('admin.productos.index') }}" class="nav-item active">
-            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8v4h8z"/></svg>
-            Productos
-        </a>
-        <span class="nav-section-label">Usuarios</span>
-        <a href="{{ route('admin.usuarios.index') }}" class="nav-item">
-            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-            Usuarios
-        </a>
-        <a href="{{ route('admin.tiendas.index') }}" class="nav-item">
-            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            Tiendas
-        </a>
-    </x-slot>
+    <x-slot name="nav">@include('admin.partials.nav')</x-slot>
 
     <x-slot name="actions">
         <a href="{{ route('admin.productos.create') }}" class="btn btn-primary">+ Nuevo producto</a>
@@ -33,11 +13,23 @@
         <div class="p-card-header">
             <h3 class="p-card-title">Todos los productos ({{ $productos->total() }})</h3>
             <form method="GET" action="{{ route('admin.productos.index') }}" class="search-form">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
                 <input type="text" name="q" value="{{ $search }}" placeholder="Buscar producto…" class="form-input-sm">
                 <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
                 @if($search)
-                    <a href="{{ route('admin.productos.index') }}" class="btn btn-sm btn-outline">✕</a>
+                    <a href="{{ route('admin.productos.index', ['per_page' => $perPage]) }}" class="btn btn-sm btn-outline">✕</a>
                 @endif
+            </form>
+            <form method="GET" action="{{ route('admin.productos.index') }}" class="search-form">
+                @if($search)
+                    <input type="hidden" name="q" value="{{ $search }}">
+                @endif
+                <label class="text-muted" for="admin-productos-per-page">Mostrar</label>
+                <select id="admin-productos-per-page" name="per_page" class="form-input-sm" onchange="this.form.submit()">
+                    <option value="10" @selected($perPage === 10)>10</option>
+                    <option value="20" @selected($perPage === 20)>20</option>
+                    <option value="50" @selected($perPage === 50)>50</option>
+                </select>
             </form>
         </div>
 
@@ -51,6 +43,9 @@
                     <th>Stock</th>
                     <th>Condición</th>
                     <th>Estado</th>
+                    <th>Revisión</th>
+                    <th>Visitas</th>
+                    <th>Favoritos</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -68,7 +63,16 @@
                             @endif
                             <div>
                                 <div>{{ Str::limit($p->nombre, 50) }}</div>
+                                @if($p->destacado)
+                                    <span class="badge badge-warning">Destacado</span>
+                                @endif
+                                @if($p->bloqueado)
+                                    <span class="badge badge-danger">Bloqueado</span>
+                                @endif
                                 <small class="text-muted">{{ $p->slug }}</small>
+                                @if($p->fecha_publicacion)
+                                    <small class="text-muted">Publicado {{ $p->fecha_publicacion->format('d/m/Y') }}</small>
+                                @endif
                             </div>
                         </div>
                     </td>
@@ -83,9 +87,9 @@
                     </td>
                     <td>{{ $p->stock }}</td>
                     <td>
-                        @if($p->estado)
-                            <span class="badge badge-estado-{{ $p->estado }}">
-                                {{ \App\Models\Product::ESTADOS[$p->estado] }}
+                        @if($p->estado_id)
+                            <span class="badge badge-estado-{{ $p->estado_slug }}">
+                                {{ $p->estado_label }}
                             </span>
                         @else
                             <span class="text-muted">—</span>
@@ -94,11 +98,18 @@
                     <td>
                         <form method="POST" action="{{ route('admin.productos.toggle', $p) }}">
                             @csrf @method('PATCH')
-                            <button type="submit" class="badge {{ $p->activo ? 'badge-success' : 'badge-secondary' }}" style="cursor:pointer;border:none;">
-                                {{ $p->activo ? 'Activo' : 'Inactivo' }}
+                            <button type="submit" class="badge {{ $p->estado_publicacion_id === \App\Models\Product::PUBLICACION_ACTIVO ? 'badge-success' : 'badge-secondary' }}" style="cursor:pointer;border:none;">
+                                {{ $p->estado_publicacion_label }}
                             </button>
                         </form>
                     </td>
+                    <td>
+                        <span class="badge {{ $p->bloqueado || $p->estado_revision_id === \App\Models\Product::REVISION_RECHAZADO ? 'badge-danger' : ($p->estado_revision_id === \App\Models\Product::REVISION_APROBADO ? 'badge-success' : 'badge-warning') }}">
+                            {{ $p->estado_revision_label }}
+                        </span>
+                    </td>
+                    <td>{{ number_format($p->visitas, 0, ',', '.') }}</td>
+                    <td>{{ number_format($p->favorites_count, 0, ',', '.') }}</td>
                     <td>
                         <div class="action-btns">
                             <a href="{{ route('admin.productos.edit', $p) }}" class="btn-icon btn-icon-edit" title="Editar">
@@ -118,7 +129,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="empty-row">No hay productos.</td></tr>
+                <tr><td colspan="10" class="empty-row">No hay productos.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -89,7 +89,7 @@
                     <div class="form-group">
                         <label class="form-label" for="estado">Cambiar estado</label>
                         <select id="estado" name="estado" class="form-input">
-                            @foreach(\App\Models\Order::ESTADOS as $value => $label)
+                            @foreach($orderStatuses as $value => $label)
                                 <option value="{{ $value }}" @selected($order->estado === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
@@ -111,9 +111,9 @@
             <div class="p-card-body">
                 @forelse($order->statusHistories->sortByDesc('created_at') as $history)
                     <p style="margin-bottom:10px">
-                        <strong>{{ \App\Models\Order::ESTADOS[$history->estado_anterior] ?? 'Sin estado' }}</strong>
+                        <strong>{{ \App\Models\Order::labelForStatus($history->estado_anterior) }}</strong>
                         a
-                        <strong>{{ \App\Models\Order::ESTADOS[$history->estado_nuevo] ?? $history->estado_nuevo }}</strong>
+                        <strong>{{ \App\Models\Order::labelForStatus($history->estado_nuevo) }}</strong>
                         <br>
                         <span class="text-muted">{{ ucfirst($history->actor) }} {{ $history->user?->name ? 'por '.$history->user->name : '' }} · {{ $history->created_at->format('d/m/Y H:i') }}</span>
                     </p>

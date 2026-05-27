@@ -44,7 +44,7 @@
                         <td>{{ $order->items->pluck('tienda_nombre')->filter()->unique()->count() }}</td>
                         <td>{{ $order->items->sum('cantidad') }}</td>
                         <td>${{ number_format($order->total, 0, ',', '.') }}</td>
-                        <td><span class="badge badge-secondary">{{ ucfirst($order->estado) }}</span></td>
+                        <td><span class="badge badge-secondary">{{ $order->estadoLabel() }}</span></td>
                         <td><a href="{{ route('admin.pedidos.show', $order) }}" class="btn btn-sm btn-outline">Ver detalle</a></td>
                     </tr>
                 @empty

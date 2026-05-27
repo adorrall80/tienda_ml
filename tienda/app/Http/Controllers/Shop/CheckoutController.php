@@ -43,7 +43,7 @@ class CheckoutController extends Controller
                 ->map(fn($rows) => $rows->sum(fn($row) => (int) $row['qty']));
 
             $products = Product::publicados()
-                ->with('tienda')
+                ->with(['tienda', 'deliveryTypes'])
                 ->whereIn('id', $quantities->keys())
                 ->lockForUpdate()
                 ->get()
@@ -115,7 +115,7 @@ class CheckoutController extends Controller
     {
         abort_unless($order->user_id === request()->user()->id, 404);
 
-        $order->load('items.tienda.user');
+        $order->load('items.tienda.user', 'items.product.deliveryTypes');
 
         return view('shop.checkout-confirmacion', compact('order'));
     }

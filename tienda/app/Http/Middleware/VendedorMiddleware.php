@@ -15,7 +15,9 @@ class VendedorMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user()?->hasRole(['admin', 'vendedor'])) {
+        $user = $request->user();
+
+        if (! $user?->hasRole(['admin', 'vendedor']) && ! $user?->tienda()->exists()) {
             abort(403);
         }
 

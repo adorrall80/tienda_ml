@@ -10,8 +10,29 @@
     $formatPrice = fn($value) => $value !== null && $value !== '' ? number_format((int) $value, 0, ',', '.') : '';
     $precioValue = old('precio', isset($producto) ? $formatPrice($producto->precio) : '');
     $precioOfertaValue = old('precio_oferta', isset($producto) ? $formatPrice($producto->precio_oferta) : '');
+    $costoEnvioValue = old('costo_envio', isset($producto) ? $formatPrice($producto->costo_envio) : '');
+    $selectedDeliveryTypeIds = collect(old('delivery_type_ids', isset($producto) ? $producto->deliveryTypes->pluck('id')->all() : []))
+        ->map(fn($id) => (int) $id)
+        ->all();
+    $attributeRows = old('atributos');
+    if ($attributeRows === null) {
+        $attributeRows = isset($producto)
+            ? $producto->productAttributes->map(fn($attr) => ['nombre' => $attr->nombre, 'valor' => $attr->valor])->values()->all()
+            : [];
+    }
+    if (empty($attributeRows)) {
+        $attributeRows = [['nombre' => '', 'valor' => '']];
+    }
 @endphp
 
+<div class="product-tabs" data-product-tabs>
+    <div class="product-tab-list" role="tablist" aria-label="Secciones del producto">
+        <button type="button" class="product-tab-btn active" data-product-tab="basicos" role="tab" aria-selected="true">Datos básicos</button>
+        <button type="button" class="product-tab-btn" data-product-tab="imagenes" role="tab" aria-selected="false">Imágenes</button>
+        <button type="button" class="product-tab-btn" data-product-tab="atributos" role="tab" aria-selected="false">Atributos</button>
+    </div>
+
+    <div class="product-tab-panel active" data-product-panel="basicos" role="tabpanel">
 <div class="form-grid-2">
     <div class="form-group" style="grid-column:1/-1">
         <label class="form-label">Tienda</label>
@@ -62,18 +83,6 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Imagen del producto</label>
-        @if(isset($producto) && $producto->imagen)
-            <div class="product-image-current">
-                <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}">
-                <span>Imagen actual</span>
-            </div>
-        @endif
-        <input type="file" name="imagen_archivo" class="form-input" accept="image/jpeg,image/png,image/webp">
-        <small class="form-help">Formatos: JPG, PNG o WebP. Máximo 4 MB.</small>
-    </div>
-
-    <div class="form-group">
         <label class="form-label">Precio normal <small class="text-muted">(dejar vacío si es regalo)</small></label>
         <input type="text" name="precio" id="campo_precio" value="{{ $precioValue }}" class="form-input" inputmode="numeric" pattern="[0-9.]*" placeholder="0">
     </div>
@@ -86,10 +95,10 @@
 
     <div class="form-group">
         <label class="form-label">Estado del producto <span class="req">*</span></label>
-        <select name="estado" class="form-input" required>
+        <select name="estado_id" class="form-input" required>
             <option value="">— Seleccionar —</option>
-            @foreach(\App\Models\Product::ESTADOS as $val => $label)
-                <option value="{{ $val }}" @selected(old('estado', $producto->estado ?? '') === $val)>{{ $label }}</option>
+            @foreach($productConditions as $condition)
+                <option value="{{ $condition->id }}" @selected((int) old('estado_id', $producto->estado_id ?? '') === $condition->id)>{{ $condition->nombre }}</option>
             @endforeach
         </select>
     </div>
@@ -107,19 +116,332 @@
         </label>
     </div>
 
-    @isset($producto)
-    <div class="form-group">
-        <label class="form-switch">
-            <input type="hidden" name="activo" value="0">
-            <input class="form-switch-input" type="checkbox" name="activo" value="1" @checked(old('activo', $producto->activo ?? true))>
-            <span class="form-switch-slider" aria-hidden="true"></span>
-            <span>Producto activo</span>
-        </label>
+    <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Entrega</label>
+        <div class="delivery-options">
+            @foreach($deliveryTypes as $deliveryType)
+                <label class="form-check">
+                    <input type="checkbox" name="delivery_type_ids[]" value="{{ $deliveryType->id }}" @checked(in_array($deliveryType->id, $selectedDeliveryTypeIds, true))>
+                    {{ $deliveryType->nombre }}
+                </label>
+            @endforeach
+        </div>
+        <small class="form-help">Opciones informativas para coordinar con el comprador. No generan pago ni integración automática.</small>
     </div>
-    @endisset
+
+    <div class="form-group">
+        <label class="form-label">Costo envío estimado</label>
+        <input type="text" name="costo_envio" value="{{ $costoEnvioValue }}" class="form-input" inputmode="numeric" pattern="[0-9.]*" placeholder="Ej: 3.000">
+        <small class="form-help">Opcional. Déjalo vacío si se coordina directamente o si es gratis.</small>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Tiempo entrega</label>
+        <input type="text" name="tiempo_entrega" value="{{ old('tiempo_entrega', $producto->tiempo_entrega ?? '') }}" class="form-input" maxlength="120" placeholder="Ej: 24 horas, 2 a 3 días, coordinar">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Estado publicación <span class="req">*</span></label>
+        <select name="estado_publicacion_id" class="form-input" required>
+            @foreach(\App\Models\Product::ESTADOS_PUBLICACION as $val => $label)
+                <option value="{{ $val }}" @selected((int) old('estado_publicacion_id', $producto->estado_publicacion_id ?? \App\Models\Product::PUBLICACION_ACTIVO) === $val)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <small class="form-help">Activo se muestra en la tienda. Pausado y vendido no aparecen en el listado público.</small>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Estado revisión</label>
+        <div class="form-static">{{ $producto->estado_revision_label ?? 'Pendiente' }}</div>
+        <small class="form-help">Cada producto nuevo o editado queda pendiente hasta revisión de administración.</small>
+    </div>
+
+    @if(isset($producto) && $producto->bloqueado)
+        <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Producto bloqueado</label>
+            <div class="form-static">Este producto fue bloqueado por administracion y no puede modificarse.</div>
+            @if($producto->motivo_bloqueo)
+                <small class="form-help">{{ $producto->motivo_bloqueo }}</small>
+            @endif
+        </div>
+    @endif
+
+    @if(isset($producto) && $producto->estado_revision_id === \App\Models\Product::REVISION_RECHAZADO && $producto->motivo_rechazo)
+        <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Motivo rechazo</label>
+            <div class="form-static">{{ $producto->motivo_rechazo }}</div>
+        </div>
+    @endif
+</div>
+    </div>
+
+    <div class="product-tab-panel" data-product-panel="imagenes" role="tabpanel">
+        <div class="form-grid-2">
+            <div class="form-group" style="grid-column:1/-1">
+                <label class="form-label">Imagen principal</label>
+                @if(isset($producto) && $producto->imagen)
+                    <div class="product-image-current">
+                        <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}">
+                        <span>Imagen principal actual</span>
+                    </div>
+                @endif
+                <input type="file" name="imagen_archivo" class="form-input" accept="image/jpeg,image/png,image/webp">
+                <small class="form-help">Formatos: JPG, PNG o WebP. Máximo 4 MB.</small>
+            </div>
+
+            <div class="form-group" style="grid-column:1/-1">
+                <label class="form-label">Galería de imágenes</label>
+                @if(isset($producto) && $producto->images->isNotEmpty())
+                    <div class="gallery-current">
+                        @foreach($producto->images as $image)
+                            <div class="gallery-current-item">
+                                <button type="button" class="gallery-preview-btn" data-gallery-preview="{{ $image->imagen }}" data-gallery-title="{{ $producto->nombre }}">
+                                    <img src="{{ $image->imagen }}" alt="{{ $producto->nombre }}">
+                                </button>
+                                <div class="gallery-order-actions">
+                                    <button type="button" class="gallery-order-btn" data-gallery-order-url="{{ route('vendedor.productos.imagenes.orden', [$producto, $image]) }}" data-gallery-direction="up">Mover antes</button>
+                                    <button type="button" class="gallery-order-btn" data-gallery-order-url="{{ route('vendedor.productos.imagenes.orden', [$producto, $image]) }}" data-gallery-direction="down">Mover después</button>
+                                </div>
+                                <div class="gallery-delete-wrap">
+                                    <button type="button" class="gallery-delete-btn" data-gallery-delete-url="{{ route('vendedor.productos.imagenes.destroy', [$producto, $image]) }}">Eliminar</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="form-placeholder">Este producto aún no tiene imágenes de galería.</div>
+                @endif
+                <input type="file" name="galeria_archivos[]" class="form-input" accept="image/jpeg,image/png,image/webp" multiple>
+                <small class="form-help">Puedes seleccionar varias imágenes. Se guardan en la galería del producto.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-tab-panel" data-product-panel="atributos" role="tabpanel">
+        <div class="attributes-editor" data-attributes-editor>
+            <div class="attributes-list" data-attributes-list>
+                @foreach($attributeRows as $index => $row)
+                    <div class="attribute-row" data-attribute-row>
+                        <div class="form-group">
+                            <label class="form-label">Nombre atributo</label>
+                            <input type="text" name="atributos[{{ $index }}][nombre]" value="{{ $row['nombre'] ?? '' }}" class="form-input" maxlength="100" placeholder="Ej: Marca">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Valor</label>
+                            <input type="text" name="atributos[{{ $index }}][valor]" value="{{ $row['valor'] ?? '' }}" class="form-input" maxlength="255" placeholder="Ej: Samsung">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline attribute-remove" data-attribute-remove>Quitar</button>
+                    </div>
+                @endforeach
+            </div>
+            <button type="button" class="btn btn-sm btn-outline" data-attribute-add>Agregar atributo</button>
+            <small class="form-help">Ejemplos: marca, modelo, color, talla, año, material. Se muestran en la ficha pública.</small>
+        </div>
+    </div>
+</div>
+
+<div class="image-modal" data-image-modal hidden>
+    <div class="image-modal-backdrop" data-image-modal-close></div>
+    <div class="image-modal-dialog" role="dialog" aria-modal="true" aria-label="Vista previa de imagen">
+        <button type="button" class="image-modal-close" data-image-modal-close aria-label="Cerrar">×</button>
+        <img src="" alt="" data-image-modal-img>
+    </div>
 </div>
 
 <script>
+const productGalleryCsrfToken = '{{ csrf_token() }}';
+
+document.querySelectorAll('[data-gallery-order-url]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const item = button.closest('.gallery-current-item');
+        const gallery = item?.closest('.gallery-current');
+        const target = button.dataset.galleryDirection === 'up'
+            ? item?.previousElementSibling
+            : item?.nextElementSibling;
+
+        if (!item || !gallery || !target) return;
+
+        item.classList.add('is-updating');
+
+        try {
+            const response = await fetch(button.dataset.galleryOrderUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': productGalleryCsrfToken,
+                    'Accept': 'text/html',
+                },
+                body: JSON.stringify({
+                    _method: 'PATCH',
+                    direction: button.dataset.galleryDirection,
+                }),
+            });
+
+            if (!response.ok) throw new Error('No se pudo ordenar la imagen.');
+
+            if (button.dataset.galleryDirection === 'up') {
+                gallery.insertBefore(item, target);
+            } else {
+                gallery.insertBefore(target, item);
+            }
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            item.classList.remove('is-updating');
+            refreshGalleryOrderButtons(gallery);
+        }
+    });
+});
+
+document.querySelectorAll('[data-gallery-delete-url]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar esta imagen de galería?')) return;
+
+        const item = button.closest('.gallery-current-item');
+        const gallery = item?.closest('.gallery-current');
+        button.disabled = true;
+
+        try {
+            const response = await fetch(button.dataset.galleryDeleteUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': productGalleryCsrfToken,
+                    'Accept': 'text/html',
+                },
+                body: JSON.stringify({ _method: 'DELETE' }),
+            });
+
+            if (!response.ok) throw new Error('No se pudo eliminar la imagen.');
+
+            item?.remove();
+            refreshGalleryOrderButtons(gallery);
+        } catch (error) {
+            alert(error.message);
+            button.disabled = false;
+        }
+    });
+});
+
+function refreshGalleryOrderButtons(gallery) {
+    if (!gallery) return;
+
+    const items = Array.from(gallery.querySelectorAll('.gallery-current-item'));
+    items.forEach((item, index) => {
+        const up = item.querySelector('[data-gallery-direction="up"]');
+        const down = item.querySelector('[data-gallery-direction="down"]');
+        if (up) up.disabled = index === 0;
+        if (down) down.disabled = index === items.length - 1;
+    });
+}
+
+document.querySelectorAll('.gallery-current').forEach(refreshGalleryOrderButtons);
+
+document.querySelectorAll('[data-gallery-preview]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const modal = document.querySelector('[data-image-modal]');
+        const image = modal?.querySelector('[data-image-modal-img]');
+        if (!modal || !image) return;
+
+        image.src = button.dataset.galleryPreview;
+        image.alt = button.dataset.galleryTitle || 'Imagen de galería';
+        modal.hidden = false;
+        document.body.classList.add('image-modal-open');
+    });
+});
+
+document.querySelectorAll('[data-image-modal-close]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const modal = button.closest('[data-image-modal]');
+        const image = modal?.querySelector('[data-image-modal-img]');
+        if (!modal || !image) return;
+
+        modal.hidden = true;
+        image.src = '';
+        document.body.classList.remove('image-modal-open');
+    });
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    document.querySelectorAll('[data-image-modal]').forEach((modal) => {
+        if (modal.hidden) return;
+        modal.hidden = true;
+        modal.querySelector('[data-image-modal-img]').src = '';
+        document.body.classList.remove('image-modal-open');
+    });
+});
+
+document.querySelectorAll('[data-product-tabs]').forEach((tabs) => {
+    const buttons = tabs.querySelectorAll('[data-product-tab]');
+    const panels = tabs.querySelectorAll('[data-product-panel]');
+    const activate = (name) => {
+        buttons.forEach((button) => {
+            const active = button.dataset.productTab === name;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.productPanel === name));
+    };
+
+    buttons.forEach((button) => button.addEventListener('click', () => activate(button.dataset.productTab)));
+
+    tabs.closest('form')?.querySelectorAll('button[type="submit"]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            const form = button.form;
+            if (!form || form.checkValidity()) return;
+
+            const invalid = form.querySelector(':invalid');
+            const panel = invalid?.closest('[data-product-panel]');
+            if (panel) activate(panel.dataset.productPanel);
+            event.preventDefault();
+            setTimeout(() => form.reportValidity(), 0);
+        });
+    });
+});
+
+document.querySelectorAll('[data-attributes-editor]').forEach((editor) => {
+    const list = editor.querySelector('[data-attributes-list]');
+    const add = editor.querySelector('[data-attribute-add]');
+    const nextIndex = () => list.querySelectorAll('[data-attribute-row]').length;
+
+    const refreshRemoveButtons = () => {
+        const rows = list.querySelectorAll('[data-attribute-row]');
+        rows.forEach((row) => {
+            row.querySelector('[data-attribute-remove]').disabled = rows.length === 1;
+        });
+    };
+
+    add?.addEventListener('click', () => {
+        const index = nextIndex();
+        const row = document.createElement('div');
+        row.className = 'attribute-row';
+        row.dataset.attributeRow = '';
+        row.innerHTML = `
+            <div class="form-group">
+                <label class="form-label">Nombre atributo</label>
+                <input type="text" name="atributos[${index}][nombre]" class="form-input" maxlength="100" placeholder="Ej: Marca">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Valor</label>
+                <input type="text" name="atributos[${index}][valor]" class="form-input" maxlength="255" placeholder="Ej: Samsung">
+            </div>
+            <button type="button" class="btn btn-sm btn-outline attribute-remove" data-attribute-remove>Quitar</button>
+        `;
+        list.appendChild(row);
+        refreshRemoveButtons();
+    });
+
+    list?.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-attribute-remove]');
+        if (!button || button.disabled) return;
+        button.closest('[data-attribute-row]')?.remove();
+        refreshRemoveButtons();
+    });
+
+    refreshRemoveButtons();
+});
+
 document.querySelectorAll('.html-editor').forEach((editor) => {
     const group = editor.closest('.form-group');
     const input = group.querySelector('.html-description-input');
@@ -144,4 +466,39 @@ document.addEventListener('submit', () => {
         if (input) input.value = editor.innerHTML.trim();
     });
 }, true);
+
+document.querySelectorAll('form[data-review-lock-check-url]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+        if (form.dataset.reviewLockChecked === '1') {
+            form.dataset.reviewLockChecked = '0';
+            return;
+        }
+
+        event.preventDefault();
+
+        try {
+            const response = await fetch(form.dataset.reviewLockCheckUrl, {
+                headers: { 'Accept': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo validar el estado de revision.');
+            }
+
+            const data = await response.json();
+            if (data.locked) {
+                const message = data.bloqueado
+                    ? 'Este producto fue bloqueado por administracion. No se guardaran cambios hasta que administracion lo desbloquee.'
+                    : 'Este producto esta en revision por administracion. No se guardaran cambios hasta que termine la revision.';
+                alert(message);
+                return;
+            }
+
+            form.dataset.reviewLockChecked = '1';
+            form.requestSubmit(event.submitter || undefined);
+        } catch (error) {
+            alert(error.message || 'No se pudo validar el estado de revision.');
+        }
+    });
+});
 </script>

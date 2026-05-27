@@ -20,13 +20,22 @@ class ProfileController extends Controller
     {
         $orders = $request->user()
             ->orders()
-            ->with('items.tienda')
+            ->with(['items.tienda', 'orderStatus'])
             ->latest()
             ->get();
 
+        $favoriteProducts = $request->user()
+            ->favoriteProducts()
+            ->publicados()
+            ->with(['tags', 'tienda'])
+            ->withCount('favorites')
+            ->latest('favorites.created_at')
+            ->get();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $request->user()->loadMissing('tienda'),
             'orders' => $orders,
+            'favoriteProducts' => $favoriteProducts,
         ]);
     }
 
@@ -70,7 +79,7 @@ class ProfileController extends Controller
     {
         abort_unless($order->user_id === $request->user()->id, 404);
 
-        $order->load('items.tienda.user', 'statusHistories.user');
+        $order->load('items.tienda.user', 'statusHistories.user', 'orderStatus');
 
         return view('profile.order-show', compact('order'));
     }

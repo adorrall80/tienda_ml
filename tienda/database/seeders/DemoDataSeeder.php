@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Banner;
 use App\Models\Category;
+use App\Models\DeliveryType;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Tag;
@@ -120,8 +121,20 @@ class DemoDataSeeder extends Seeder
 
         foreach ($ofertas as $data) {
             $p = Product::firstOrCreate(['slug' => $data['slug']], array_merge($data, ['tienda_id' => $tiendaOficial->id]));
+            if (in_array($p->slug, ['samsung-galaxy-a54-5g', 'sony-playstation-5'], true)) {
+                $p->update(['destacado' => true]);
+            }
+            $p->update([
+                'retiro_en_domicilio' => true,
+                'delivery' => true,
+                'envio_courier' => true,
+                'costo_envio' => $p->envio_gratis ? null : 3990,
+                'tiempo_entrega' => '2 a 3 días hábiles',
+            ]);
+            $this->syncDemoDeliveryTypes($p);
             $p->tags()->syncWithoutDetaching([$oferta->id]);
             $this->addExtraImages($p, $data['imagen']);
+            $this->addDemoAttributes($p);
         }
 
         // ── Productos: Más vendidos ────────────────────────────────────
@@ -137,8 +150,20 @@ class DemoDataSeeder extends Seeder
 
         foreach ($masVendidosData as $data) {
             $p = Product::firstOrCreate(['slug' => $data['slug']], array_merge($data, ['tienda_id' => $tiendaOficial->id]));
+            if (in_array($p->slug, ['audifonos-sony-wh-1000xm5', 'apple-ipad-10-64gb'], true)) {
+                $p->update(['destacado' => true]);
+            }
+            $p->update([
+                'retiro_en_domicilio' => true,
+                'delivery' => false,
+                'envio_courier' => true,
+                'costo_envio' => $p->envio_gratis ? null : 2990,
+                'tiempo_entrega' => 'Coordinar con la tienda',
+            ]);
+            $this->syncDemoDeliveryTypes($p);
             $p->tags()->syncWithoutDetaching([$masVendido->id]);
             $this->addExtraImages($p, $data['imagen']);
+            $this->addDemoAttributes($p);
         }
 
         $productosNorte = [
@@ -161,10 +186,17 @@ class DemoDataSeeder extends Seeder
                 'rating' => 4.50,
                 'rating_count' => $data['rating_count'],
                 'activo' => true,
-                'estado' => 'nuevo',
+                'estado_id' => Product::ESTADO_NUEVO,
+                'retiro_en_domicilio' => true,
+                'delivery' => true,
+                'envio_courier' => false,
+                'costo_envio' => null,
+                'tiempo_entrega' => '24 a 48 horas',
             ]);
             $productoNorte->tags()->syncWithoutDetaching([$nuevo->id]);
+            $this->syncDemoDeliveryTypes($productoNorte);
             $this->addExtraImages($productoNorte, $productoNorte->imagen);
+            $this->addDemoAttributes($productoNorte);
         }
 
         // Tags adicionales
@@ -187,6 +219,56 @@ class DemoDataSeeder extends Seeder
                 ['imagen' => "https://picsum.photos/seed/{$base}{$suffix}/300/300"]
             );
         }
+    }
+
+    private function addDemoAttributes(Product $product): void
+    {
+        if ($product->productAttributes()->exists()) {
+            return;
+        }
+
+        $attributes = match (true) {
+            str_contains($product->slug, 'zapatillas') => [
+                ['nombre' => 'Marca', 'valor' => 'Nike'],
+                ['nombre' => 'Color', 'valor' => 'Negro/Blanco'],
+                ['nombre' => 'Talla', 'valor' => 'Varias tallas'],
+            ],
+            str_contains($product->slug, 'refrigerador') => [
+                ['nombre' => 'Marca', 'valor' => 'Samsung'],
+                ['nombre' => 'Capacidad', 'valor' => '427L'],
+                ['nombre' => 'Sistema', 'valor' => 'No Frost'],
+            ],
+            str_contains($product->slug, 'silla') => [
+                ['nombre' => 'Material', 'valor' => 'Eco cuero'],
+                ['nombre' => 'Uso', 'valor' => 'Escritorio'],
+                ['nombre' => 'Color', 'valor' => 'Negro'],
+            ],
+            default => [
+                ['nombre' => 'Marca', 'valor' => explode(' ', $product->nombre)[0] ?? 'Demo'],
+                ['nombre' => 'Estado', 'valor' => 'Nuevo'],
+                ['nombre' => 'Origen', 'valor' => 'Demo'],
+            ],
+        };
+
+        foreach ($attributes as $index => $attribute) {
+            $product->productAttributes()->create([
+                'nombre' => $attribute['nombre'],
+                'valor' => $attribute['valor'],
+                'orden' => $index + 1,
+            ]);
+        }
+    }
+
+    private function syncDemoDeliveryTypes(Product $product): void
+    {
+        $slugs = collect([
+            $product->retiro_en_domicilio ? 'retiro-en-domicilio' : null,
+            $product->delivery ? 'delivery-propio' : null,
+            $product->envio_courier ? 'envio-por-courier' : null,
+        ])->filter()->all();
+
+        $ids = DeliveryType::whereIn('slug', $slugs)->pluck('id')->all();
+        $product->deliveryTypes()->sync($ids);
     }
 
 }

@@ -16,7 +16,7 @@ class OrderController extends Controller
     public function index(): View
     {
         $orders = Order::query()
-            ->with('items.tienda')
+            ->with(['items.tienda', 'orderStatus'])
             ->latest()
             ->paginate(20);
         $ordersCount = Order::count();
@@ -27,17 +27,18 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load('items.tienda.user', 'user', 'statusHistories.user', 'internalNotes.user');
+        $order->load('items.tienda.user', 'user', 'statusHistories.user', 'internalNotes.user', 'orderStatus');
 
         $storeGroups = $order->items->groupBy('tienda_id');
+        $orderStatuses = Order::statusOptions();
 
-        return view('admin.pedidos.show', compact('order', 'storeGroups'));
+        return view('admin.pedidos.show', compact('order', 'storeGroups', 'orderStatuses'));
     }
 
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         $data = $request->validate([
-            'estado' => ['required', Rule::in(array_keys(Order::ESTADOS))],
+            'estado' => ['required', Rule::in(array_keys(Order::statusOptions()))],
         ]);
 
         $order->recordStatusChange($request->user(), $data['estado'], 'admin');

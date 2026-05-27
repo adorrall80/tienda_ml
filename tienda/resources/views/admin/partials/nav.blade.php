@@ -31,3 +31,17 @@
     <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-5"/></svg>
     Palabras bloqueadas
 </a>
+
+<span class="nav-section-label">Mantenedores</span>
+<a href="{{ route('admin.mantenedores.estados-producto.index') }}" class="nav-item {{ request()->routeIs('admin.mantenedores.estados-producto.*') ? 'active' : '' }}">
+    <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
+    Estados producto
+</a>
+<a href="{{ route('admin.mantenedores.estados-pedido.index') }}" class="nav-item {{ request()->routeIs('admin.mantenedores.estados-pedido.*') ? 'active' : '' }}">
+    <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+    Estados pedido
+</a>
+<a href="{{ route('admin.mantenedores.tipos-entrega.index') }}" class="nav-item {{ request()->routeIs('admin.mantenedores.tipos-entrega.*') ? 'active' : '' }}">
+    <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7h11v10H3z"/><path d="M14 11h3l4 4v2h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+    Tipos de entrega
+</a>

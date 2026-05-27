@@ -109,6 +109,49 @@ class PublicShopTest extends TestCase
             ->assertDontSee('Producto Tienda Inactiva Test');
     }
 
+    public function test_products_listing_hides_products_not_approved_by_review(): void
+    {
+        $category = $this->createCategory();
+        $approved = $this->createProduct($category, [
+            'nombre' => 'Producto Aprobado Test',
+            'slug' => 'producto-aprobado-test',
+            'estado_revision_id' => Product::REVISION_APROBADO,
+        ]);
+        $this->createProduct($category, [
+            'nombre' => 'Producto Pendiente Test',
+            'slug' => 'producto-pendiente-test',
+            'estado_revision_id' => Product::REVISION_PENDIENTE,
+        ]);
+        $this->createProduct($category, [
+            'nombre' => 'Producto Rechazado Test',
+            'slug' => 'producto-rechazado-test',
+            'estado_revision_id' => Product::REVISION_RECHAZADO,
+            'motivo_rechazo' => 'Imagen no corresponde al producto.',
+        ]);
+        $this->createProduct($category, [
+            'nombre' => 'Producto En Revision Admin Test',
+            'slug' => 'producto-en-revision-admin-test',
+            'estado_revision_id' => Product::REVISION_EN_REVISION,
+        ]);
+        $this->createProduct($category, [
+            'nombre' => 'Producto Bloqueado Test',
+            'slug' => 'producto-bloqueado-test',
+            'estado_revision_id' => Product::REVISION_APROBADO,
+            'bloqueado' => true,
+            'motivo_bloqueo' => 'Producto prohibido.',
+        ]);
+
+        $response = $this->get('/productos');
+
+        $response
+            ->assertOk()
+            ->assertSee($approved->nombre)
+            ->assertDontSee('Producto Pendiente Test')
+            ->assertDontSee('Producto Rechazado Test')
+            ->assertDontSee('Producto En Revision Admin Test')
+            ->assertDontSee('Producto Bloqueado Test');
+    }
+
     public function test_products_listing_can_filter_by_category_and_search(): void
     {
         $electronics = $this->createCategory([
@@ -175,19 +218,53 @@ class PublicShopTest extends TestCase
         $newProduct = $this->createProduct($category, [
             'nombre' => 'Producto Nuevo Test',
             'slug' => 'producto-nuevo-test',
-            'estado' => 'nuevo',
+            'estado_id' => Product::ESTADO_NUEVO,
         ]);
         $this->createProduct($category, [
             'nombre' => 'Producto Usado Test',
             'slug' => 'producto-usado-test',
-            'estado' => 'usado',
+            'estado_id' => Product::ESTADO_USADO,
         ]);
 
-        $this->get('/productos?estado=nuevo')
+        $this->get('/productos?estado_id='.Product::ESTADO_NUEVO)
             ->assertOk()
             ->assertSee($newProduct->nombre)
             ->assertSee('Estado: Nuevo')
             ->assertDontSee('Producto Usado Test');
+    }
+
+    public function test_products_listing_shows_clear_filters_button_when_filters_are_active(): void
+    {
+        $category = $this->createCategory();
+        $this->createProduct($category, [
+            'nombre' => 'Producto Limpia Filtro',
+            'slug' => 'producto-limpia-filtro',
+        ]);
+
+        $this->get('/productos?q=limpia')
+            ->assertOk()
+            ->assertSee('Limpiar filtros');
+    }
+
+    public function test_products_listing_prioritizes_featured_products(): void
+    {
+        $category = $this->createCategory();
+        $featured = $this->createProduct($category, [
+            'nombre' => 'Producto Destacado Test',
+            'slug' => 'producto-destacado-test',
+            'destacado' => true,
+            'rating_count' => 1,
+        ]);
+        $regular = $this->createProduct($category, [
+            'nombre' => 'Producto Comun Test',
+            'slug' => 'producto-comun-test',
+            'destacado' => false,
+            'rating_count' => 999,
+        ]);
+
+        $this->get('/productos')
+            ->assertOk()
+            ->assertSeeInOrder([$featured->nombre, $regular->nombre]);
     }
 
     public function test_product_detail_page_can_be_rendered(): void
@@ -197,6 +274,15 @@ class PublicShopTest extends TestCase
             'nombre' => 'Producto Detalle Test',
             'slug' => 'producto-detalle-test',
             'descripcion' => 'Descripcion visible del producto.',
+            'envio_gratis' => false,
+            'retiro_en_domicilio' => true,
+            'delivery' => true,
+            'costo_envio' => 2500,
+            'tiempo_entrega' => '2 a 3 días',
+        ]);
+        $product->productAttributes()->createMany([
+            ['nombre' => 'Marca', 'valor' => 'Samsung', 'orden' => 1],
+            ['nombre' => 'Color', 'valor' => 'Azul', 'orden' => 2],
         ]);
 
         $response = $this->get('/productos/'.$product->slug);
@@ -205,7 +291,47 @@ class PublicShopTest extends TestCase
             ->assertOk()
             ->assertSee($product->nombre)
             ->assertSee('Descripcion visible del producto.')
+            ->assertSee('Retiro en domicilio')
+            ->assertSee('Delivery propio')
+            ->assertSee('$2.500')
+            ->assertSee('2 a 3 días')
+            ->assertSee('Marca')
+            ->assertSee('Samsung')
+            ->assertSee('Color')
+            ->assertSee('Azul')
             ->assertSee('Agregar al carrito');
+    }
+
+    public function test_product_detail_increments_visit_counter(): void
+    {
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, [
+            'nombre' => 'Producto Visitas Test',
+            'slug' => 'producto-visitas-test',
+            'visitas' => 0,
+        ]);
+
+        $this->get('/productos/'.$product->slug)
+            ->assertOk()
+            ->assertSee('1 visitas');
+
+        $this->assertSame(1, $product->fresh()->visitas);
+    }
+
+    public function test_product_detail_counts_one_visit_per_session(): void
+    {
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, [
+            'nombre' => 'Producto Una Visita Test',
+            'slug' => 'producto-una-visita-test',
+            'visitas' => 0,
+        ]);
+
+        $this->get('/productos/'.$product->slug)->assertOk();
+        $this->get('/productos/'.$product->slug)->assertOk();
+        $this->get('/productos/'.$product->slug)->assertOk();
+
+        $this->assertSame(1, $product->fresh()->visitas);
     }
 
     public function test_product_detail_shows_real_store_information(): void
@@ -272,7 +398,23 @@ class PublicShopTest extends TestCase
         $this->actingAs($user)
             ->get('/')
             ->assertOk()
-            ->assertSee('href="'.route('vendedor.panel').'"', false);
+            ->assertSee('href="'.route('vendedor.panel').'"', false)
+            ->assertSee('Mi tienda')
+            ->assertDontSee('Empezar a vender');
+    }
+
+    public function test_sell_link_sends_admins_to_admin_panel(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('href="'.route('admin.dashboard').'"', false)
+            ->assertSee('Panel admin')
+            ->assertSee('Administra TiendaMV')
+            ->assertDontSee('Empezar a vender');
     }
 
     public function test_sell_link_sends_clientes_to_account_page(): void
@@ -390,10 +532,18 @@ class PublicShopTest extends TestCase
             'stock' => 5,
             'imagen' => 'https://example.com/product.jpg',
             'envio_gratis' => true,
+            'retiro_en_domicilio' => false,
+            'delivery' => false,
+            'envio_courier' => false,
+            'costo_envio' => null,
+            'tiempo_entrega' => null,
             'rating' => 4.5,
             'rating_count' => 10,
             'activo' => true,
-            'estado' => 'nuevo',
+            'estado_id' => Product::ESTADO_NUEVO,
+            'fecha_publicacion' => now(),
+            'visitas' => 0,
+            'destacado' => false,
         ], $overrides));
     }
 

@@ -56,6 +56,16 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function favoriteProducts()
+    {
+        return $this->belongsToMany(Product::class, 'favorites')->withTimestamps();
+    }
+
     public function isAdmin(): bool    { return $this->hasRole('admin'); }
     public function isVendedor(): bool { return $this->hasRole('vendedor'); }
     public function isCliente(): bool  { return $this->hasRole('cliente'); }

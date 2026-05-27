@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\DeliveryType;
 use App\Models\Product;
+use App\Models\ProductCondition;
 use Illuminate\Http\Request;
 
 class ProductsController extends Controller
@@ -16,8 +18,10 @@ class ProductsController extends Controller
             ? (int) $request->query('per_page', 20)
             : 20;
         $categorias = Category::activas()->raiz()->get();
+        $productConditions = ProductCondition::activos()->orderBy('orden')->orderBy('nombre')->get();
+        $deliveryTypes = DeliveryType::activos()->orderBy('orden')->orderBy('nombre')->get();
 
-        $query = Product::publicados()->with('tags');
+        $query = Product::publicados()->with(['tags', 'productCondition', 'deliveryTypes'])->withCount('favorites');
 
         // Filtro: categoría
         $categoriaActual = null;
@@ -42,9 +46,13 @@ class ProductsController extends Controller
             $query->where('envio_gratis', true);
         }
 
+        if ($request->filled('delivery_type_id') && $deliveryTypes->contains('id', (int) $request->query('delivery_type_id'))) {
+            $query->whereHas('deliveryTypes', fn ($q) => $q->whereKey((int) $request->query('delivery_type_id')));
+        }
+
         // Filtro: estado del producto
-        if ($request->filled('estado') && array_key_exists($request->query('estado'), Product::ESTADOS)) {
-            $query->where('estado', $request->query('estado'));
+        if ($request->filled('estado_id') && $productConditions->contains('id', (int) $request->query('estado_id'))) {
+            $query->where('estado_id', (int) $request->query('estado_id'));
         }
 
         // Filtro: rango de precio
@@ -59,9 +67,9 @@ class ProductsController extends Controller
         match ($request->get('orden', 'relevante')) {
             'precio_asc'  => $query->orderBy('precio'),
             'precio_desc' => $query->orderByDesc('precio'),
-            'nuevos'      => $query->latest(),
+            'nuevos'      => $query->orderByDesc('fecha_publicacion')->latest(),
             'rating'      => $query->orderByDesc('rating')->orderByDesc('rating_count'),
-            default       => $query->orderByDesc('rating_count'),
+            default       => $query->orderByDesc('destacado')->orderByDesc('rating_count'),
         };
 
         $productos = $query->paginate($perPage)->withQueryString();
@@ -72,23 +80,36 @@ class ProductsController extends Controller
             default                     => 'Todos los productos',
         };
 
-        return view('shop.productos', compact('productos', 'categorias', 'categoriaActual', 'titulo', 'perPage'));
+        return view('shop.productos', compact('productos', 'categorias', 'categoriaActual', 'titulo', 'perPage', 'productConditions', 'deliveryTypes'));
     }
 
     public function show(string $slug)
     {
         $producto = Product::publicados()
-            ->with(['tags', 'category', 'images', 'tienda'])
+            ->with(['tags', 'category', 'images', 'tienda', 'productAttributes', 'deliveryTypes', 'productCondition'])
+            ->withCount('favorites')
             ->where('slug', $slug)
             ->firstOrFail();
 
+        $visitKey = 'productos_vistos.' . $producto->id;
+        if (! session()->has($visitKey)) {
+            $producto->increment('visitas');
+            session()->put($visitKey, true);
+            $producto->visitas = (int) $producto->visitas;
+        }
+
+        $isFavorited = auth()->check()
+            ? auth()->user()->favorites()->where('product_id', $producto->id)->exists()
+            : false;
+
         $relacionados = Product::publicados()
-            ->with(['tags', 'tienda'])
+            ->with(['tags', 'tienda', 'productCondition'])
+            ->withCount('favorites')
             ->where('category_id', $producto->category_id)
             ->where('id', '!=', $producto->id)
             ->take(6)
             ->get();
 
-        return view('shop.producto', compact('producto', 'relacionados'));
+        return view('shop.producto', compact('producto', 'relacionados', 'isFavorited'));
     }
 }

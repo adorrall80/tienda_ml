@@ -118,6 +118,13 @@ class CheckoutTest extends TestCase
             ->assertSee('Ver detalle')
             ->assertSee('ventas-checkout@example.com')
             ->assertSee('+56 9 1111 2222')
+            ->assertSee('Retiro en domicilio')
+            ->assertSee('Delivery propio')
+            ->assertSee('$2.500')
+            ->assertSee('24 horas')
+            ->assertSee('No realices transferencias')
+            ->assertSee('coordinar primero la entrega con la tienda')
+            ->assertSee('responsabilidad de cada tienda')
             ->assertSee('no tiene pago en linea', false);
     }
 
@@ -152,6 +159,31 @@ class CheckoutTest extends TestCase
             ->assertSee('ventas.dos@example.com')
             ->assertSee('+56 9 2222 2222');
     }
+
+    public function test_checkout_confirmation_respects_store_contact_visibility(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createPublicProduct(
+            contactPhone: '+56 9 9999 9999',
+            phoneVisible: false,
+            allowWhatsapp: false,
+        );
+
+        $this->actingAs($user)
+            ->post(route('checkout.store'), $this->checkoutPayload([
+                ['id' => $product->id, 'qty' => 1],
+            ]));
+
+        $order = Order::first();
+
+        $this->get(route('checkout.confirmacion', $order))
+            ->assertOk()
+            ->assertSee('ventas-checkout@example.com')
+            ->assertDontSee('+56 9 9999 9999')
+            ->assertDontSee('+56 9 3333 4444')
+            ->assertSee('Sin WhatsApp público');
+    }
+
 
     public function test_checkout_confirmation_requires_the_order_owner(): void
     {
@@ -239,6 +271,8 @@ class CheckoutTest extends TestCase
         string $storeName = 'Tienda Checkout',
         string $contactEmail = 'ventas-checkout@example.com',
         string $contactPhone = '+56 9 1111 2222',
+        bool $phoneVisible = true,
+        bool $allowWhatsapp = true,
     ): Product
     {
         $category = Category::create([
@@ -254,7 +288,9 @@ class CheckoutTest extends TestCase
             'slug' => 'tienda-checkout-'.uniqid(),
             'contacto_email' => $contactEmail,
             'contacto_telefono' => $contactPhone,
+            'telefono_visible' => $phoneVisible,
             'contacto_whatsapp' => '+56 9 3333 4444',
+            'permite_whatsapp' => $allowWhatsapp,
             'contacto_direccion' => 'Local Checkout 123',
             'activa' => $storeActive,
         ]);
@@ -268,7 +304,13 @@ class CheckoutTest extends TestCase
             'stock' => $stock,
             'imagen' => 'https://example.com/product.jpg',
             'activo' => true,
-            'estado' => 'nuevo',
+            'estado_id' => Product::ESTADO_NUEVO,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            'retiro_en_domicilio' => true,
+            'delivery' => true,
+            'envio_courier' => false,
+            'costo_envio' => 2500,
+            'tiempo_entrega' => '24 horas',
         ]);
     }
 }

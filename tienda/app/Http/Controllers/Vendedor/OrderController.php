@@ -25,7 +25,7 @@ class OrderController extends Controller
 
         $orders = Order::query()
             ->whereHas('items', fn ($query) => $query->where('tienda_id', $tienda->id))
-            ->with(['items' => fn ($query) => $query->where('tienda_id', $tienda->id)])
+            ->with(['items' => fn ($query) => $query->where('tienda_id', $tienda->id), 'orderStatus'])
             ->latest()
             ->paginate(15);
         $storeTotalAll = OrderItem::query()
@@ -50,6 +50,7 @@ class OrderController extends Controller
                     $notes->whereNull('tienda_id')->orWhere('tienda_id', $tienda->id);
                 })
                 ->with('user'),
+            'orderStatus',
         ]);
 
         abort_if($order->items->isEmpty(), 404);
@@ -61,8 +62,9 @@ class OrderController extends Controller
         $storeTotalAll = OrderItem::query()
             ->where('tienda_id', $tienda->id)
             ->sum('total');
+        $orderStatuses = Order::statusOptions();
 
-        return view('vendedor.pedidos.show', compact('tienda', 'order', 'storeTotal', 'ordersCount', 'storeTotalAll'));
+        return view('vendedor.pedidos.show', compact('tienda', 'order', 'storeTotal', 'ordersCount', 'storeTotalAll', 'orderStatuses'));
     }
 
     public function updateStatus(Request $request, Order $order): RedirectResponse
@@ -73,7 +75,7 @@ class OrderController extends Controller
         abort_unless($order->items()->where('tienda_id', $tienda->id)->exists(), 404);
 
         $data = $request->validate([
-            'estado' => ['required', Rule::in(array_keys(Order::ESTADOS))],
+            'estado' => ['required', Rule::in(array_keys(Order::statusOptions()))],
         ]);
 
         $order->recordStatusChange($request->user(), $data['estado'], 'vendedor');

@@ -85,7 +85,20 @@ class VendedorPanelTest extends TestCase
                 'stock' => 7,
                 'imagen_archivo' => $image,
                 'envio_gratis' => '1',
-                'estado' => 'nuevo',
+                'retiro_en_domicilio' => '1',
+                'delivery' => '1',
+                'envio_courier' => '1',
+                'costo_envio' => '2.990',
+                'tiempo_entrega' => '24 horas',
+                'destacado' => '1',
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'estado_revision_id' => Product::REVISION_APROBADO,
+                'atributos' => [
+                    ['nombre' => 'Marca', 'valor' => 'Nike'],
+                    ['nombre' => 'Talla', 'valor' => '42'],
+                ],
+                'guardar_accion' => 'listado',
             ])
             ->assertRedirect('/mi-tienda/productos');
 
@@ -98,8 +111,28 @@ class VendedorPanelTest extends TestCase
             'sku' => '000001',
             'slug' => 'producto-vendedor-test',
             'activo' => true,
+            'retiro_en_domicilio' => true,
+            'delivery' => true,
+            'envio_courier' => true,
+            'costo_envio' => 2990,
+            'tiempo_entrega' => '24 horas',
+            'destacado' => false,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            'estado_revision_id' => Product::REVISION_PENDIENTE,
         ]);
         $this->assertStringStartsWith('/storage/products/', $product->imagen);
+        $this->assertDatabaseHas('product_attributes', [
+            'product_id' => $product->id,
+            'nombre' => 'Marca',
+            'valor' => 'Nike',
+            'orden' => 1,
+        ]);
+        $this->assertDatabaseHas('product_attributes', [
+            'product_id' => $product->id,
+            'nombre' => 'Talla',
+            'valor' => '42',
+            'orden' => 2,
+        ]);
         Storage::disk('public')->assertExists(str_replace('/storage/', '', $product->imagen));
     }
 
@@ -118,9 +151,175 @@ class VendedorPanelTest extends TestCase
                 'precio' => 15990,
                 'stock' => 7,
                 'imagen_archivo' => $file,
-                'estado' => 'nuevo',
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
             ])
             ->assertSessionHasErrors('imagen_archivo');
+    }
+
+    public function test_vendedor_products_can_be_paginated_with_selected_page_size(): void
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+
+        for ($i = 1; $i <= 12; $i++) {
+            $this->createProduct($category, $store, [
+                'nombre' => 'Producto Paginado Vendedor '.$i,
+                'slug' => 'producto-paginado-vendedor-'.$i,
+            ]);
+        }
+
+        $this->actingAs($vendor)
+            ->get('/mi-tienda/productos?per_page=10')
+            ->assertOk()
+            ->assertViewHas('perPage', 10)
+            ->assertViewHas('productos', fn ($productos) => $productos->perPage() === 10 && $productos->total() === 12);
+    }
+
+    public function test_vendedor_can_upload_and_delete_own_product_gallery_images(): void
+    {
+        Storage::fake('public');
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, $store, [
+            'nombre' => 'Producto Galeria Vendedor',
+            'slug' => 'producto-galeria-vendedor',
+        ]);
+
+        $this->actingAs($vendor)
+            ->put('/mi-tienda/productos/'.$product->id, [
+                'nombre' => 'Producto Galeria Vendedor',
+                'category_id' => $category->id,
+                'precio' => 10000,
+                'stock' => 5,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'galeria_archivos' => [
+                    UploadedFile::fake()->image('galeria-vendedor-1.jpg'),
+                    UploadedFile::fake()->image('galeria-vendedor-2.webp'),
+                ],
+            ])
+            ->assertRedirect(route('vendedor.productos.edit', $product));
+
+        $this->assertCount(2, $product->fresh()->images);
+
+        $image = $product->fresh()->images()->firstOrFail();
+        Storage::disk('public')->assertExists(str_replace('/storage/', '', $image->imagen));
+
+        $this->actingAs($vendor)
+            ->delete(route('vendedor.productos.imagenes.destroy', [$product, $image]))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('product_images', ['id' => $image->id]);
+        Storage::disk('public')->assertMissing(str_replace('/storage/', '', $image->imagen));
+    }
+
+    public function test_vendedor_can_reorder_own_product_gallery_images(): void
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, $store, [
+            'nombre' => 'Producto Orden Galeria Vendedor',
+            'slug' => 'producto-orden-galeria-vendedor',
+        ]);
+        $first = $product->images()->create(['imagen' => 'https://example.com/a.jpg', 'orden' => 1]);
+        $second = $product->images()->create(['imagen' => 'https://example.com/b.jpg', 'orden' => 2]);
+
+        $this->actingAs($vendor)
+            ->patch(route('vendedor.productos.imagenes.orden', [$product, $second]), [
+                'direction' => 'up',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(2, $first->fresh()->orden);
+        $this->assertSame(1, $second->fresh()->orden);
+    }
+
+    public function test_vendedor_product_save_actions_redirect_to_new_form_or_edit_form(): void
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+
+        $this->actingAs($vendor)
+            ->post('/mi-tienda/productos', [
+                'nombre' => 'Producto Vendedor Nuevo Siguiente',
+                'category_id' => $category->id,
+                'precio' => 29990,
+                'stock' => 11,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'guardar_accion' => 'nuevo',
+            ])
+            ->assertRedirect(route('vendedor.productos.create'));
+
+        $product = $this->createProduct($category, $store, [
+            'nombre' => 'Producto Vendedor Guardar Edit',
+            'slug' => 'producto-vendedor-guardar-edit',
+        ]);
+
+        $this->actingAs($vendor)
+            ->put('/mi-tienda/productos/'.$product->id, [
+                'nombre' => 'Producto Vendedor Guardar Editado',
+                'category_id' => $category->id,
+                'precio' => 29990,
+                'stock' => 11,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'guardar_accion' => 'guardar',
+            ])
+            ->assertRedirect(route('vendedor.productos.edit', $product));
+    }
+
+    public function test_vendedor_can_preview_own_product_from_editor(): void
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, $store, [
+            'nombre' => 'Producto Preview Vendedor',
+            'slug' => 'producto-preview-vendedor',
+            'activo' => false,
+            'estado_publicacion_id' => Product::PUBLICACION_PAUSADO,
+            'estado_revision_id' => Product::REVISION_PENDIENTE,
+        ]);
+
+        $this->actingAs($vendor)
+            ->get(route('vendedor.productos.edit', $product))
+            ->assertOk()
+            ->assertSee('Vista previa');
+
+        $this->actingAs($vendor)
+            ->get(route('vendedor.productos.preview', $product))
+            ->assertOk()
+            ->assertSee('Producto Preview Vendedor');
+    }
+
+    public function test_vendedor_cannot_preview_product_from_another_store(): void
+    {
+        $owner = User::factory()->create();
+        $owner->assignRole('vendedor');
+        $intruder = User::factory()->create();
+        $intruder->assignRole('vendedor');
+        $store = $this->createStore($owner);
+        $this->createStore($intruder, [
+            'nombre' => 'Tienda Intrusa Preview',
+            'slug' => 'tienda-intrusa-preview',
+        ]);
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, $store);
+
+        $this->actingAs($intruder)
+            ->get(route('vendedor.productos.preview', $product))
+            ->assertForbidden();
     }
 
     public function test_vendedor_cannot_edit_product_from_another_store(): void
@@ -144,6 +343,84 @@ class VendedorPanelTest extends TestCase
         $this->actingAs($intruder)
             ->get('/mi-tienda/productos/'.$product->id.'/editar')
             ->assertForbidden();
+    }
+
+    public function test_vendedor_cannot_edit_product_in_admin_review(): void
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, $store, [
+            'nombre' => 'Producto En Revision Admin',
+            'slug' => 'producto-en-revision-admin',
+            'estado_revision_id' => Product::REVISION_EN_REVISION,
+        ]);
+
+        $this->actingAs($vendor)
+            ->get('/mi-tienda/productos/'.$product->id.'/editar')
+            ->assertRedirect(route('vendedor.productos.index'));
+
+        $this->actingAs($vendor)
+            ->put('/mi-tienda/productos/'.$product->id, [
+                'nombre' => 'Producto Modificado Mientras Revisa',
+                'category_id' => $category->id,
+                'precio' => 29990,
+                'stock' => 11,
+                'estado_id' => Product::ESTADO_NUEVO,
+                'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+                'guardar_accion' => 'guardar',
+            ])
+            ->assertSessionHasErrors('producto');
+
+        $this->assertSame('Producto En Revision Admin', $product->fresh()->nombre);
+        $this->assertSame(Product::REVISION_EN_REVISION, $product->fresh()->estado_revision_id);
+    }
+
+    public function test_vendedor_can_check_if_product_is_locked_by_admin_review(): void
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, $store, [
+            'estado_revision_id' => Product::REVISION_EN_REVISION,
+        ]);
+
+        $this->actingAs($vendor)
+            ->getJson(route('vendedor.productos.estado-revision', $product))
+            ->assertOk()
+            ->assertJson([
+                'estado_revision_id' => Product::REVISION_EN_REVISION,
+                'estado_revision_label' => 'En revisión por admin',
+                'locked' => true,
+            ]);
+    }
+
+    public function test_vendedor_cannot_edit_blocked_product(): void
+    {
+        $vendor = User::factory()->create();
+        $vendor->assignRole('vendedor');
+        $store = $this->createStore($vendor);
+        $category = $this->createCategory();
+        $product = $this->createProduct($category, $store, [
+            'nombre' => 'Producto Bloqueado Vendedor',
+            'slug' => 'producto-bloqueado-vendedor',
+            'bloqueado' => true,
+            'motivo_bloqueo' => 'Producto prohibido.',
+        ]);
+
+        $this->actingAs($vendor)
+            ->get('/mi-tienda/productos/'.$product->id.'/editar')
+            ->assertRedirect(route('vendedor.productos.index'));
+
+        $this->actingAs($vendor)
+            ->getJson(route('vendedor.productos.estado-revision', $product))
+            ->assertOk()
+            ->assertJson([
+                'bloqueado' => true,
+                'locked' => true,
+            ]);
     }
 
     public function test_vendedor_panel_shows_received_orders_for_their_store(): void
@@ -393,6 +670,7 @@ class VendedorPanelTest extends TestCase
             'slug' => 'categoria-vendedor-test',
             'orden' => 1,
             'activo' => true,
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
         ], $overrides));
     }
 
@@ -420,7 +698,8 @@ class VendedorPanelTest extends TestCase
             'imagen' => 'https://example.com/producto-ajeno.jpg',
             'envio_gratis' => false,
             'activo' => true,
-            'estado' => 'nuevo',
+            'estado_publicacion_id' => Product::PUBLICACION_ACTIVO,
+            'estado_id' => Product::ESTADO_NUEVO,
         ], $overrides));
     }
 
