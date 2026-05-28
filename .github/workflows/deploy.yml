@@ -1,14 +1,21 @@
 name: Deploy FTP
 
+# Reglas de publicacion:
+# - Si haces push a master, se publica en la raiz del FTP: ./
+# - Si haces push a cualquier otra rama, se publica en pruebas: ./pruebas/
+# - No necesitas modificar este YAML por cada feature/hotfix nuevo.
+# - Si varias ramas publican en pruebas, la ultima rama que haga push reemplaza lo anterior.
+
 on:
   push:
     branches:
-      - main
+      - '**'
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: tienda
@@ -27,16 +34,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: tienda/package-lock.json
 
       - name: Install PHP dependencies
         run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
       - name: Install Node dependencies
-        run: npm ci
+        if: hashFiles('tienda/package.json') != ''
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Build assets
+        if: hashFiles('tienda/package.json') != ''
         run: npm run build
 
       - name: Prepare Laravel cache
@@ -45,7 +57,9 @@ jobs:
           php artisan route:clear
           php artisan view:clear
 
-      - name: Deploy by FTP
+      # Produccion: solo cuando haces push a master.
+      - name: Deploy production root
+        if: github.ref == 'refs/heads/master'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -59,6 +73,32 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/vendor/**
             **/tests/**
             **/.env
             **/storage/logs/**
+            **/storage/framework/**
+            **/database/database.sqlite
+
+      # Pruebas: cualquier rama distinta de master.
+      - name: Deploy testing folder
+        if: github.ref != 'refs/heads/master'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          local-dir: ./tienda/
+          server-dir: ./pruebas/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/vendor/**
+            **/tests/**
+            **/.env
+            **/storage/logs/**
+            **/storage/framework/**
+            **/database/database.sqlite
