@@ -97,7 +97,7 @@ jobs:
           log-level: verbose
           dangerous-clean-slate: false
           local-dir: ./tienda/
-          server-dir: /tienda_mv_test/
+          server-dir: ./tienda_mv_test/
           exclude: |
             **/.git*
             **/.git*/**
