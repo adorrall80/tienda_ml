@@ -113,7 +113,7 @@ class CheckoutController extends Controller
 
     public function confirmation(Order $order): View
     {
-        abort_unless($order->user_id === request()->user()->id, 404);
+        abort_unless((int) $order->user_id === (int) request()->user()->id, 404);
 
         $order->load('items.tienda.user', 'items.product.deliveryTypes');
 

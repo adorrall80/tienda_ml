@@ -77,7 +77,7 @@ class ProfileController extends Controller
 
     public function showOrder(Request $request, Order $order): View
     {
-        abort_unless($order->user_id === $request->user()->id, 404);
+        abort_unless((int) $order->user_id === (int) $request->user()->id, 404);
 
         $order->load('items.tienda.user', 'statusHistories.user', 'orderStatus');
 
