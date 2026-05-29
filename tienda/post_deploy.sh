@@ -51,11 +51,15 @@ if [ "$RUN_COMPOSER" = true ]; then
 fi
 
 echo "== Crear carpetas Laravel =="
+mkdir -p storage/app/public
 mkdir -p storage/framework/views
 mkdir -p storage/framework/cache
 mkdir -p storage/framework/cache/data
 mkdir -p storage/framework/sessions
 chmod -R 775 storage bootstrap/cache
+
+echo "== Enlace publico de storage =="
+$PHP84 artisan storage:link --force
 
 echo "== Base de datos =="
 if [ "$RUN_FRESH_DEMO" = true ]; then
