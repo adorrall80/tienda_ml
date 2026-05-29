@@ -5,6 +5,8 @@ const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 const fmtCLP = n => '$' + Number(n).toLocaleString('es-CL');
 const fmtCartPrice = n => Number(n) > 0 ? fmtCLP(n) : 'Se regala';
 const safeSlug = value => /^[a-z0-9-]+$/i.test(String(value || '')) ? String(value) : '';
+const appUrl = () => document.querySelector('meta[name="app-url"]')?.content?.replace(/\/$/, '') || '';
+const appPath = path => `${appUrl()}${path.startsWith('/') ? path : `/${path}`}`;
 const safeHttpUrl = value => {
   try {
     const url = new URL(String(value || ''), window.location.origin);
@@ -104,7 +106,7 @@ const Cart = {
       const qty = Math.max(1, Number(item.qty) || 1);
       const lineTotal = price * qty;
       const productSlug = safeSlug(item.slug);
-      const productUrl = productSlug ? `/productos/${productSlug}` : '/productos';
+      const productUrl = productSlug ? appPath(`/productos/${productSlug}`) : appPath('/productos');
       const imageUrl = safeHttpUrl(item.img);
 
       const article = document.createElement('article');
@@ -198,7 +200,7 @@ function initSearchAutocomplete() {
       const q = input.value.trim().toLowerCase();
       if (!q) { dropdown.classList.remove('active'); return; }
 
-      fetch(`/buscar/sugerencias?q=${encodeURIComponent(q)}`)
+      fetch(appPath(`/buscar/sugerencias?q=${encodeURIComponent(q)}`))
         .then(r => r.json())
         .then(matches => {
           if (!matches.length) { dropdown.classList.remove('active'); return; }
@@ -326,7 +328,7 @@ function initCartPage() {
     showToast('Carrito vaciado');
   });
   $('[data-cart-checkout]')?.addEventListener('click', () => {
-    window.location.href = '/checkout';
+    window.location.href = appPath('/checkout');
   });
 }
 

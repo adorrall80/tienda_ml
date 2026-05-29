@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? config('app.name') }}</title>
     <meta name="description" content="{{ $description ?? '' }}">
+    <meta name="app-url" content="{{ url('/') }}">
     @vite(['resources/css/shop.css', 'resources/js/shop.js'])
     {{ $head ?? '' }}
 </head>
