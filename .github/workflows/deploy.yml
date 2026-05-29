@@ -73,7 +73,6 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
-            **/vendor/**
             **/tests/**
             **/.env
             **/storage/logs/**
@@ -96,7 +95,6 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
-            **/vendor/**
             **/tests/**
             **/.env
             **/storage/logs/**
