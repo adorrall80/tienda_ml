@@ -71,7 +71,7 @@ jobs:
           log-level: verbose
           dangerous-clean-slate: false
           local-dir: ./tienda/
-          server-dir: ./
+          server-dir: ./public_html/
           exclude: |
             **/.git*
             **/.git*/**
@@ -97,7 +97,7 @@ jobs:
           log-level: verbose
           dangerous-clean-slate: false
           local-dir: ./tienda/
-          server-dir: /public_html/tienda_mv_test/
+          server-dir: /tienda_mv_test/
           exclude: |
             **/.git*
             **/.git*/**
