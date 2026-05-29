@@ -6,6 +6,7 @@ PHP84=/opt/cpanel/ea-php84/root/usr/bin/php
 
 RUN_COMPOSER=false
 RUN_FRESH_DEMO=false
+RUN_SEED_INITIAL=false
 APP_PATH=""
 
 for arg in "$@"; do
@@ -23,6 +24,10 @@ for arg in "$@"; do
 
     if [ "$arg" = "--fresh-demo" ]; then
         RUN_FRESH_DEMO=true
+    fi
+
+    if [ "$arg" = "--seed-initial" ]; then
+        RUN_SEED_INITIAL=true
     fi
 done
 
@@ -48,6 +53,7 @@ fi
 echo "== Crear carpetas Laravel =="
 mkdir -p storage/framework/views
 mkdir -p storage/framework/cache
+mkdir -p storage/framework/cache/data
 mkdir -p storage/framework/sessions
 chmod -R 775 storage bootstrap/cache
 
@@ -60,6 +66,11 @@ if [ "$RUN_FRESH_DEMO" = true ]; then
 else
     echo "== Modo normal: aplicar migraciones pendientes =="
     $PHP84 artisan migrate --force
+
+    if [ "$RUN_SEED_INITIAL" = true ]; then
+        echo "== Cargar datos iniciales =="
+        $PHP84 artisan db:seed --class=InitialDataSeeder --force
+    fi
 fi
 
 echo "== Limpiar cache =="
