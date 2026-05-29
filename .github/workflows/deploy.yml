@@ -97,7 +97,7 @@ jobs:
           log-level: verbose
           dangerous-clean-slate: false
           local-dir: ./tienda/
-          server-dir: ./pruebas/
+          server-dir: /home/jatoyris/Despliegue_test/p
           exclude: |
             **/.git*
             **/.git*/**
