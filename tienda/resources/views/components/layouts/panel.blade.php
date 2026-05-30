@@ -93,7 +93,30 @@
     // Sidebar toggle
     const toggle = document.getElementById('sidebarToggle');
     const wrapper = document.querySelector('.p-wrapper');
-    toggle?.addEventListener('click', () => wrapper?.classList.toggle('sidebar-collapsed'));
+    const mobileQuery = window.matchMedia('(max-width: 640px)');
+
+    const closeSidebarOnMobile = () => {
+        if (mobileQuery.matches) {
+            wrapper?.classList.add('sidebar-collapsed');
+            wrapper?.classList.remove('sidebar-mobile-open');
+        }
+    };
+
+    closeSidebarOnMobile();
+    mobileQuery.addEventListener?.('change', closeSidebarOnMobile);
+
+    toggle?.addEventListener('click', () => {
+        if (mobileQuery.matches) {
+            wrapper?.classList.toggle('sidebar-mobile-open');
+            wrapper?.classList.add('sidebar-collapsed');
+            return;
+        }
+
+        wrapper?.classList.toggle('sidebar-collapsed');
+    });
+    document.querySelectorAll('.p-sidebar a').forEach(link => {
+        link.addEventListener('click', closeSidebarOnMobile);
+    });
 
     // User dropdown
     const menu = document.getElementById('pUserMenu');

@@ -701,6 +701,10 @@ a:hover { text-decoration: underline; color: var(--p-blue); }
   }
 
   .p-wrapper:not(.sidebar-collapsed) .p-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .p-wrapper.sidebar-mobile-open .p-sidebar {
     transform: translateX(0);
   }
 
