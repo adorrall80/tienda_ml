@@ -82,6 +82,7 @@ $PHP84 artisan config:clear
 $PHP84 artisan route:clear
 $PHP84 artisan view:clear
 $PHP84 artisan cache:clear
+$PHP84 -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache cleared'.PHP_EOL; }"
 
 echo "== Verificacion =="
 $PHP84 artisan --version

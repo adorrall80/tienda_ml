@@ -58,6 +58,11 @@ class ProductoController extends Controller
         return $request->user()->tienda;
     }
 
+    private function ownsProduct($tienda, Product $producto): bool
+    {
+        return $tienda && (int) $producto->tienda_id === (int) $tienda->id;
+    }
+
     private function isLockedForAdminReview(Product $producto): bool
     {
         return (int) $producto->estado_revision_id === Product::REVISION_EN_REVISION
@@ -240,7 +245,7 @@ class ProductoController extends Controller
     {
         $tienda = $this->tienda($request);
 
-        abort_if($producto->tienda_id !== $tienda?->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
         if ($this->isLockedForAdminReview($producto)) {
             return redirect()
                 ->route('vendedor.productos.index')
@@ -259,7 +264,7 @@ class ProductoController extends Controller
     {
         $tienda = $this->tienda($request);
 
-        abort_if($producto->tienda_id !== $tienda?->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
 
         return response()->json([
             'estado_revision_id' => $producto->estado_revision_id,
@@ -273,7 +278,7 @@ class ProductoController extends Controller
     {
         $tienda = $this->tienda($request);
 
-        abort_unless($tienda && $producto->tienda_id === $tienda->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
 
         $producto->load(['tags', 'category', 'images', 'tienda', 'productAttributes', 'deliveryTypes', 'productCondition']);
         $producto->loadCount('favorites');
@@ -300,7 +305,7 @@ class ProductoController extends Controller
 
         $tienda = $this->tienda($request);
 
-        abort_if($producto->tienda_id !== $tienda?->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
         if ($this->isLockedForAdminReview($producto)) {
             return back()->withErrors(['producto' => 'Este producto esta en revision por administracion y no se puede modificar por ahora.']);
         }
@@ -364,7 +369,7 @@ class ProductoController extends Controller
     {
         $tienda = $this->tienda($request);
 
-        abort_if($producto->tienda_id !== $tienda?->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
         if ($this->isLockedForAdminReview($producto)) {
             return back()->withErrors(['producto' => 'Este producto esta en revision por administracion y no se puede eliminar por ahora.']);
         }
@@ -378,7 +383,7 @@ class ProductoController extends Controller
     {
         $tienda = $this->tienda($request);
 
-        abort_if($producto->tienda_id !== $tienda?->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
         if ($this->isLockedForAdminReview($producto)) {
             return back()->withErrors(['producto' => 'Este producto esta en revision por administracion y no se puede activar o pausar por ahora.']);
         }
@@ -402,11 +407,11 @@ class ProductoController extends Controller
     {
         $tienda = $this->tienda($request);
 
-        abort_if($producto->tienda_id !== $tienda?->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
         if ($this->isLockedForAdminReview($producto)) {
             return back()->withErrors(['producto' => 'Este producto esta en revision por administracion y no se puede modificar su galeria por ahora.']);
         }
-        abort_unless($image->product_id === $producto->id, 404);
+        abort_unless((int) $image->product_id === (int) $producto->id, 404);
 
         if (str_starts_with($image->imagen, '/storage/')) {
             Storage::disk('public')->delete(str_replace('/storage/', '', $image->imagen));
@@ -421,11 +426,11 @@ class ProductoController extends Controller
     {
         $tienda = $this->tienda($request);
 
-        abort_if($producto->tienda_id !== $tienda?->id, 403);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
         if ($this->isLockedForAdminReview($producto)) {
             return back()->withErrors(['producto' => 'Este producto esta en revision por administracion y no se puede modificar su galeria por ahora.']);
         }
-        abort_unless($image->product_id === $producto->id, 404);
+        abort_unless((int) $image->product_id === (int) $producto->id, 404);
 
         $direction = $request->input('direction');
         abort_unless(in_array($direction, ['up', 'down'], true), 422);
