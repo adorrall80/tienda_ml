@@ -941,3 +941,58 @@ footer { background: var(--white); border-top: 1px solid var(--border); margin-t
 .detail-estado--nuevo          { background: #D4EDDA; color: #155724; }
 .detail-estado--usado          { background: #FFF3CD; color: #856404; }
 .detail-estado--reacondicionado{ background: #D1ECF1; color: #0C5460; }
+
+/* ── VISTA PRIVADA Y ERROR 404 ─────────────────────────────── */
+.private-preview-alert {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid #F59E0B;
+  border-left: 5px solid #F59E0B;
+  border-radius: 8px;
+  background: #FFFBEB;
+  color: #7C2D12;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.not-found-page {
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 16px;
+}
+
+.not-found-icon {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #F4F6F9;
+  color: #6C757D;
+  font-size: 30px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.not-found-page h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+  color: var(--text-dark);
+}
+
+.not-found-page p {
+  margin: 0 0 22px;
+  color: var(--text-muted);
+}
+
+.not-found-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}

@@ -45,6 +45,13 @@
 </div>
 
 <div class="container">
+    @if(! empty($privatePreviewReason))
+        <div class="private-preview-alert">
+            <strong>Vista privada del vendedor</strong>
+            <span>{{ $privatePreviewReason }}</span>
+        </div>
+    @endif
+
     <div class="product-detail-layout">
 
         {{-- ===== COLUMNA IZQUIERDA ===== --}}

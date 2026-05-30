@@ -85,14 +85,39 @@ class ProductsController extends Controller
 
     public function show(string $slug)
     {
-        $producto = Product::publicados()
+        $producto = Product::query()
             ->with(['tags', 'category', 'images', 'tienda', 'productAttributes', 'deliveryTypes', 'productCondition'])
             ->withCount('favorites')
             ->where('slug', $slug)
-            ->firstOrFail();
+            ->first();
+
+        if (! $producto) {
+            return response()->view('errors.404', [], 404);
+        }
+
+        $isPublic = $producto->activo
+            && $producto->estado_publicacion_id === Product::PUBLICACION_ACTIVO
+            && $producto->estado_revision_id === Product::REVISION_APROBADO
+            && ! $producto->bloqueado
+            && (bool) $producto->tienda?->activa;
+
+        $user = auth()->user();
+        $canPreviewPrivate = $user && (
+            (method_exists($user, 'hasRole') && $user->hasRole('admin'))
+            || (int) $producto->tienda?->user_id === (int) $user->id
+        );
+
+        if (! $isPublic && ! $canPreviewPrivate) {
+            return response()->view('errors.404', [], 404);
+        }
+
+        $privatePreviewReason = null;
+        if (! $isPublic) {
+            $privatePreviewReason = $this->privatePreviewReason($producto);
+        }
 
         $visitKey = 'productos_vistos.' . $producto->id;
-        if (! session()->has($visitKey)) {
+        if ($isPublic && ! session()->has($visitKey)) {
             $producto->increment('visitas');
             session()->put($visitKey, true);
             $producto->visitas = (int) $producto->visitas;
@@ -110,6 +135,27 @@ class ProductsController extends Controller
             ->take(6)
             ->get();
 
-        return view('shop.producto', compact('producto', 'relacionados', 'isFavorited'));
+        return view('shop.producto', compact('producto', 'relacionados', 'isFavorited', 'privatePreviewReason'));
+    }
+
+    private function privatePreviewReason(Product $producto): string
+    {
+        if ($producto->bloqueado) {
+            return 'Este producto esta bloqueado por administracion y no es visible para compradores.';
+        }
+
+        if (! $producto->activo || $producto->estado_publicacion_id !== Product::PUBLICACION_ACTIVO) {
+            return 'Este producto no esta activo/publicado y solo puedes verlo porque pertenece a tu tienda.';
+        }
+
+        if ($producto->estado_revision_id !== Product::REVISION_APROBADO) {
+            return 'Este producto esta pendiente de revision y todavia no es visible para compradores.';
+        }
+
+        if (! $producto->tienda?->activa) {
+            return 'La tienda no esta activa, por eso este producto no es visible para compradores.';
+        }
+
+        return 'Vista privada del producto.';
     }
 }
