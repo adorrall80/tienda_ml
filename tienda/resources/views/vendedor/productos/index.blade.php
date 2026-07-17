@@ -8,7 +8,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="p-card">
+    <div class="p-card p-card-mobile-cards">
         <div class="p-card-header">
             <h3 class="p-card-title">Productos de {{ $tienda->nombre }} ({{ $productos->total() }})</h3>
             <form method="GET" action="{{ route('vendedor.productos.index') }}" class="search-form">
@@ -20,14 +20,14 @@
                 </select>
             </form>
         </div>
-        <table class="p-table">
+        <table class="p-table p-table-mobile-cards">
             <thead>
                 <tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Condición</th><th>Estado</th><th>Revisión</th><th>Visitas</th><th>Favoritos</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @forelse($productos as $p)
                 <tr>
-                    <td>
+                    <td class="mobile-card-main" data-label="Producto">
                         <div class="product-row">
                             @if($p->imagen)
                                 <img src="{{ $p->imagen }}" alt="" class="product-thumb">
@@ -51,16 +51,16 @@
                             </div>
                         </div>
                     </td>
-                    <td class="text-muted">{{ $p->category->nombre ?? '—' }}</td>
-                    <td>
+                    <td class="text-muted" data-label="Categoría">{{ $p->category->nombre ?? '—' }}</td>
+                    <td data-label="Precio">
                         @if(is_null($p->precio))
                             <span class="badge badge-regalo">Regalo</span>
                         @else
                             ${{ number_format($p->precio, 0, ',', '.') }}
                         @endif
                     </td>
-                    <td>{{ $p->stock }}</td>
-                    <td>
+                    <td data-label="Stock">{{ $p->stock }}</td>
+                    <td data-label="Condición">
                         @if($p->estado_id)
                             <span class="badge badge-estado-{{ $p->estado_slug }}">
                                 {{ $p->estado_label }}
@@ -69,7 +69,7 @@
                             <span class="text-muted">—</span>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Estado">
                         <form method="POST" action="{{ route('vendedor.productos.toggle', $p) }}">
                             @csrf @method('PATCH')
                             <button type="submit" class="badge {{ $p->estado_publicacion_id === \App\Models\Product::PUBLICACION_ACTIVO ? 'badge-success' : 'badge-secondary' }}" style="cursor:pointer;border:none;" @disabled($p->estado_revision_id === \App\Models\Product::REVISION_EN_REVISION || $p->bloqueado)>
@@ -77,14 +77,14 @@
                             </button>
                         </form>
                     </td>
-                    <td>
+                    <td data-label="Revisión">
                         <span class="badge {{ $p->bloqueado || $p->estado_revision_id === \App\Models\Product::REVISION_RECHAZADO ? 'badge-danger' : ($p->estado_revision_id === \App\Models\Product::REVISION_APROBADO ? 'badge-success' : 'badge-warning') }}">
                             {{ $p->estado_revision_label }}
                         </span>
                     </td>
-                    <td>{{ number_format($p->visitas, 0, ',', '.') }}</td>
-                    <td>{{ number_format($p->favorites_count, 0, ',', '.') }}</td>
-                    <td>
+                    <td data-label="Visitas">{{ number_format($p->visitas, 0, ',', '.') }}</td>
+                    <td data-label="Favoritos">{{ number_format($p->favorites_count, 0, ',', '.') }}</td>
+                    <td class="mobile-card-actions" data-label="Acciones">
                         <div class="action-btns">
                             @if($p->estado_revision_id === \App\Models\Product::REVISION_EN_REVISION || $p->bloqueado)
                                 <span class="btn-icon" title="{{ $p->bloqueado ? 'Bloqueado por admin: edición bloqueada' : 'En revisión por admin: edición bloqueada' }}">
@@ -95,7 +95,7 @@
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 </a>
                             @endif
-                            <a href="{{ route('productos.show', $p->slug) }}" class="btn-icon btn-icon-view" title="Ver" target="_blank">
+                            <a href="{{ route('productos.show', $p->slug) }}" class="btn-icon btn-icon-view" title="Ver">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </a>
                             <form method="POST" action="{{ route('vendedor.productos.destroy', $p) }}" style="display:inline"
@@ -109,7 +109,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="10" class="empty-row">No tienes productos. <a href="{{ route('vendedor.productos.create') }}">+ Agregar uno</a></td></tr>
+                <tr><td colspan="10" class="empty-row mobile-card-empty">No tienes productos. <a href="{{ route('vendedor.productos.create') }}">+ Agregar uno</a></td></tr>
                 @endforelse
             </tbody>
         </table>

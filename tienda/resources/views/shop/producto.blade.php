@@ -238,6 +238,19 @@
                             @if($producto->descripcion)
                                 <div class="product-html-description">{!! $producto->descripcion !!}</div>
                             @endif
+                            @if($producto->productAttributes->isNotEmpty())
+                                <div class="description-attributes">
+                                    <h4>Atributos del producto</h4>
+                                    <dl>
+                                        @foreach($producto->productAttributes as $attribute)
+                                            <div>
+                                                <dt>{{ $attribute->nombre }}</dt>
+                                                <dd>{{ $attribute->valor }}</dd>
+                                            </div>
+                                        @endforeach
+                                    </dl>
+                                </div>
+                            @endif
                         </div>
                     </div>
 

@@ -6,6 +6,12 @@
     </div>
 @endif
 
+<div class="form-validation-summary" data-form-validation-summary hidden>
+    <strong>No se pudo guardar el producto.</strong>
+    <span>Revisa estos datos:</span>
+    <ul data-form-validation-list></ul>
+</div>
+
 @php
     $formatPrice = fn($value) => $value !== null && $value !== '' ? number_format((int) $value, 0, ',', '.') : '';
     $precioValue = old('precio', isset($producto) ? $formatPrice($producto->precio) : '');
@@ -181,7 +187,9 @@
                 <label class="form-label">Imagen principal</label>
                 @if(isset($producto) && $producto->imagen)
                     <div class="product-image-current">
-                        <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}">
+                        <button type="button" class="product-image-preview-btn" data-gallery-preview="{{ $producto->imagen }}" data-gallery-title="{{ $producto->nombre }}">
+                            <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}">
+                        </button>
                         <span>Imagen principal actual</span>
                     </div>
                 @endif
@@ -389,16 +397,81 @@ document.querySelectorAll('[data-product-tabs]').forEach((tabs) => {
     tabs.closest('form')?.querySelectorAll('button[type="submit"]').forEach((button) => {
         button.addEventListener('click', (event) => {
             const form = button.form;
-            if (!form || form.checkValidity()) return;
+            if (!form || form.checkValidity()) {
+                clearValidationSummary(form);
+                return;
+            }
 
             const invalid = form.querySelector(':invalid');
             const panel = invalid?.closest('[data-product-panel]');
             if (panel) activate(panel.dataset.productPanel);
+            showValidationSummary(form, invalid);
             event.preventDefault();
             setTimeout(() => form.reportValidity(), 0);
         });
     });
 });
+
+document.querySelectorAll('form').forEach((form) => {
+    if (!form.querySelector('[data-form-validation-summary]')) return;
+
+    form.addEventListener('invalid', (event) => {
+        const invalid = event.target;
+        const panel = invalid?.closest('[data-product-panel]');
+        const tabs = invalid?.closest('[data-product-tabs]');
+        const targetTab = panel?.dataset.productPanel;
+        if (tabs && targetTab) {
+            tabs.querySelectorAll('[data-product-tab]').forEach((button) => {
+                const active = button.dataset.productTab === targetTab;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            tabs.querySelectorAll('[data-product-panel]').forEach((tabPanel) => {
+                tabPanel.classList.toggle('active', tabPanel.dataset.productPanel === targetTab);
+            });
+        }
+        showValidationSummary(form, invalid);
+    }, true);
+});
+
+function clearValidationSummary(form) {
+    const summary = form.querySelector('[data-form-validation-summary]');
+    const list = form.querySelector('[data-form-validation-list]');
+    if (!summary || !list) return;
+    summary.hidden = true;
+    list.innerHTML = '';
+}
+
+function showValidationSummary(form, focusField = null) {
+    const summary = form.querySelector('[data-form-validation-summary]');
+    const list = form.querySelector('[data-form-validation-list]');
+    if (!summary || !list) return;
+
+    const invalidFields = Array.from(form.querySelectorAll('input, select, textarea'))
+        .filter((field) => !field.disabled && !field.validity.valid);
+
+    const labels = [...new Set(invalidFields.map(validationFieldName).filter(Boolean))];
+    list.innerHTML = '';
+    labels.forEach((label) => {
+        const item = document.createElement('li');
+        item.textContent = label;
+        list.appendChild(item);
+    });
+
+    summary.hidden = labels.length === 0;
+    if (labels.length > 0) {
+        summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    focusField?.focus({ preventScroll: true });
+}
+
+function validationFieldName(field) {
+    const group = field.closest('.form-group');
+    const label = group?.querySelector('.form-label, .form-check');
+    const text = label?.textContent?.replace('*', '').replace(/\s+/g, ' ').trim();
+    if (text) return text;
+    return field.name || field.id || 'Campo obligatorio';
+}
 
 document.querySelectorAll('[data-attributes-editor]').forEach((editor) => {
     const list = editor.querySelector('[data-attributes-list]');

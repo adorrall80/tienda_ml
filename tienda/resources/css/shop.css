@@ -455,6 +455,11 @@ footer { background: var(--white); border-top: 1px solid var(--border); margin-t
 .description-text h4 { font-size: 15px; color: var(--text); margin: 16px 0 8px; }
 .description-text ul { padding-left: 20px; list-style: disc; }
 .description-text ul li { margin-bottom: 6px; }
+.description-attributes { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.description-attributes dl { display: grid; gap: 8px; margin: 0; }
+.description-attributes dl > div { display: grid; grid-template-columns: minmax(120px, 180px) 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid #F1F3F5; }
+.description-attributes dt { color: var(--text); font-weight: 700; }
+.description-attributes dd { margin: 0; color: var(--text-light); }
 
 .specs-table { width: 100%; border-collapse: collapse; }
 .specs-table tr:nth-child(even) { background: #f9f9f9; }
