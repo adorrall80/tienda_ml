@@ -174,6 +174,7 @@ class VendedorPanelTest extends TestCase
         $this->actingAs($vendor)
             ->get('/mi-tienda/productos?per_page=10')
             ->assertOk()
+            ->assertSee(route('vendedor.productos.preview', Product::where('slug', 'producto-paginado-vendedor-1')->firstOrFail()), false)
             ->assertViewHas('perPage', 10)
             ->assertViewHas('productos', fn ($productos) => $productos->perPage() === 10 && $productos->total() === 12);
     }
