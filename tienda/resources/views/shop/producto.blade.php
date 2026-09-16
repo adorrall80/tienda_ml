@@ -1,4 +1,4 @@
-﻿<x-layouts.shop :title="$producto->nombre . ' — TiendaMV'">
+<x-layouts.shop :title="$producto->nombre . ' — TiendaMV'">
 
 @php
     // Galería: imagen principal + imágenes adicionales de product_images (en orden)
@@ -138,46 +138,58 @@
                     </div>
                 @endif
 
-                {{-- Cantidad --}}
-                <div class="quantity-section">
-                    <label>
-                        Cantidad:
-                        <small>({{ $producto->stock }} disponibles)</small>
-                    </label>
-                    <div class="quantity-control product-actions">
-                        <button class="qty-btn dec" aria-label="Disminuir">&#8722;</button>
-                        <input class="qty-input" type="number" value="1"
-                               min="1" max="{{ $producto->stock }}"
-                               data-max="{{ $producto->stock }}"
-                               data-min="1"
-                               aria-label="Cantidad">
-                        <button class="qty-btn inc" aria-label="Aumentar">&#43;</button>
+                {{-- Cantidad y Botones --}}
+                @if($producto->stock > 0)
+                    <div class="quantity-section">
+                        <label>
+                            Cantidad:
+                            <small>({{ $producto->stock }} disponibles)</small>
+                        </label>
+                        <div class="quantity-control product-actions">
+                            <button class="qty-btn dec" aria-label="Disminuir">&#8722;</button>
+                            <input class="qty-input" type="number" value="1"
+                                   min="1" max="{{ $producto->stock }}"
+                                   data-max="{{ $producto->stock }}"
+                                   data-min="1"
+                                   aria-label="Cantidad">
+                            <button class="qty-btn inc" aria-label="Aumentar">&#43;</button>
+                        </div>
                     </div>
-                </div>
 
-                {{-- Botones --}}
-                <div class="buy-buttons product-actions">
-                    <button class="btn-buy-now"
-                            data-add-cart
-                            data-cart-redirect="true"
-                            data-id="{{ $producto->id }}"
-                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
-                            data-price="{{ $precioFinal }}"
-                            data-img="{{ $producto->imagen }}"
-                            data-slug="{{ $producto->slug }}"
-                            data-cart-url="{{ route('carrito.index') }}">
-                        Solicitar compra
-                    </button>
-                    <button class="btn-add-cart"
-                            data-add-cart
-                            data-id="{{ $producto->id }}"
-                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
-                            data-price="{{ $precioFinal }}"
-                            data-img="{{ $producto->imagen }}"
-                            data-slug="{{ $producto->slug }}">
-                        Agregar al carrito
-                    </button>
-                </div>
+                    <div class="buy-buttons product-actions">
+                        <button class="btn-buy-now"
+                                data-add-cart
+                                data-cart-redirect="true"
+                                data-id="{{ $producto->id }}"
+                                data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                                data-price="{{ $precioFinal }}"
+                                data-stock="{{ $producto->stock }}"
+                                data-img="{{ $producto->imagen }}"
+                                data-slug="{{ $producto->slug }}"
+                                data-cart-url="{{ route('carrito.index') }}">
+                            Solicitar compra
+                        </button>
+                        <button class="btn-add-cart"
+                                data-add-cart
+                                data-id="{{ $producto->id }}"
+                                data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                                data-price="{{ $precioFinal }}"
+                                data-stock="{{ $producto->stock }}"
+                                data-img="{{ $producto->imagen }}"
+                                data-slug="{{ $producto->slug }}">
+                            Agregar al carrito
+                        </button>
+                    </div>
+                @else
+                    <div style="padding: 12px 16px; background-color: #fee2e2; border: 1px solid #f87171; border-radius: 8px; color: #991b1b; font-weight: 600; margin: 16px 0; text-align: center;">
+                        🚫 Producto agotado por el momento
+                    </div>
+                    <div class="buy-buttons product-actions">
+                        <button class="btn-buy-now" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #9ca3af;">
+                            Agotado
+                        </button>
+                    </div>
+                @endif
                 <div class="favorite-action-wrap">
                     @auth
                         <form method="POST" action="{{ route('productos.favorito', $producto) }}">
@@ -387,7 +399,7 @@
                 @endif
 
                 <div class="buy-box-meta">
-                    <div>&#128230; Stock: <strong>{{ $producto->stock }} unidades</strong></div>
+                    <div>&#128230; Stock: <strong style="{{ $producto->stock <= 0 ? 'color: #dc2626;' : '' }}">{{ $producto->stock > 0 ? $producto->stock . ' unidades' : 'Agotado (0 unidades)' }}</strong></div>
                     <div>&#127978; Tienda: <strong>{{ $tiendaNombre }}</strong></div>
                     <div>
                         &#128666; Entrega:
@@ -399,39 +411,52 @@
                     <div>&#128222; El cierre se coordina por contacto con la tienda</div>
                 </div>
 
-                <div class="quantity-section product-actions">
-                    <label class="buy-box-quantity-label">Cantidad:</label>
-                    <div class="quantity-control">
-                        <button class="qty-btn dec">&#8722;</button>
-                        <input class="qty-input" type="number" value="1"
-                               min="1" max="{{ $producto->stock }}"
-                               data-max="{{ $producto->stock }}" data-min="1">
-                        <button class="qty-btn inc">&#43;</button>
+                @if($producto->stock > 0)
+                    <div class="quantity-section product-actions">
+                        <label class="buy-box-quantity-label">Cantidad:</label>
+                        <div class="quantity-control">
+                            <button class="qty-btn dec">&#8722;</button>
+                            <input class="qty-input" type="number" value="1"
+                                   min="1" max="{{ $producto->stock }}"
+                                   data-max="{{ $producto->stock }}" data-min="1">
+                            <button class="qty-btn inc">&#43;</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="buy-buttons product-actions buy-box-actions">
-                    <button class="btn-buy-now"
-                            data-add-cart
-                            data-cart-redirect="true"
-                            data-id="{{ $producto->id }}"
-                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
-                            data-price="{{ $precioFinal }}"
-                            data-img="{{ $producto->imagen }}"
-                            data-slug="{{ $producto->slug }}"
-                            data-cart-url="{{ route('carrito.index') }}">
-                        Solicitar compra
-                    </button>
-                    <button class="btn-add-cart"
-                            data-add-cart
-                            data-id="{{ $producto->id }}"
-                            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
-                            data-price="{{ $precioFinal }}"
-                            data-img="{{ $producto->imagen }}"
-                            data-slug="{{ $producto->slug }}">
-                        Agregar al carrito
-                    </button>
-                </div>
+                    <div class="buy-buttons product-actions buy-box-actions">
+                        <button class="btn-buy-now"
+                                data-add-cart
+                                data-cart-redirect="true"
+                                data-id="{{ $producto->id }}"
+                                data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                                data-price="{{ $precioFinal }}"
+                                data-stock="{{ $producto->stock }}"
+                                data-img="{{ $producto->imagen }}"
+                                data-slug="{{ $producto->slug }}"
+                                data-cart-url="{{ route('carrito.index') }}">
+                            Solicitar compra
+                        </button>
+                        <button class="btn-add-cart"
+                                data-add-cart
+                                data-id="{{ $producto->id }}"
+                                data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                                data-price="{{ $precioFinal }}"
+                                data-stock="{{ $producto->stock }}"
+                                data-img="{{ $producto->imagen }}"
+                                data-slug="{{ $producto->slug }}">
+                            Agregar al carrito
+                        </button>
+                    </div>
+                @else
+                    <div style="padding: 12px 16px; background-color: #fee2e2; border: 1px solid #f87171; border-radius: 8px; color: #991b1b; font-weight: 600; margin: 16px 0; text-align: center;">
+                        🚫 Producto agotado
+                    </div>
+                    <div class="buy-buttons product-actions buy-box-actions">
+                        <button class="btn-buy-now" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #9ca3af;">
+                            Agotado
+                        </button>
+                    </div>
+                @endif
 
                 <div class="buy-box-helper">La solicitud queda guardada en tu cuenta.</div>
             </div>
@@ -481,17 +506,24 @@
         @if($orig)<span class="sticky-original">{{ $orig }}</span>@endif
         <span class="sticky-price">{{ $precio }}</span>
     </div>
-    <button class="sticky-buy-btn"
-            data-add-cart
-            data-cart-redirect="true"
-            data-id="{{ $producto->id }}"
-            data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
-            data-price="{{ $precioFinal }}"
-            data-img="{{ $producto->imagen }}"
-            data-slug="{{ $producto->slug }}"
-            data-cart-url="{{ route('carrito.index') }}">
-        Solicitar compra
-    </button>
+    @if($producto->stock > 0)
+        <button class="sticky-buy-btn"
+                data-add-cart
+                data-cart-redirect="true"
+                data-id="{{ $producto->id }}"
+                data-title="{{ \Illuminate\Support\Str::limit($producto->nombre, 60, '') }}"
+                data-price="{{ $precioFinal }}"
+                data-stock="{{ $producto->stock }}"
+                data-img="{{ $producto->imagen }}"
+                data-slug="{{ $producto->slug }}"
+                data-cart-url="{{ route('carrito.index') }}">
+            Solicitar compra
+        </button>
+    @else
+        <button class="sticky-buy-btn" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #9ca3af;">
+            Agotado
+        </button>
+    @endif
 </div>
 
 </x-layouts.shop>

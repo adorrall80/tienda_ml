@@ -26,6 +26,7 @@ Route::get('/', [HomeController::class, 'index'])->name('inicio');
 Route::get('/productos', [ProductsController::class, 'index'])->name('productos.index');
 Route::get('/productos/{slug}', [ProductsController::class, 'show'])->name('productos.show');
 Route::view('/carrito', 'shop.carrito')->name('carrito.index');
+Route::get('/carrito/validar-stock', [ProductsController::class, 'validateCartStock'])->name('carrito.validar-stock');
 Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');

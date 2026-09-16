@@ -507,6 +507,52 @@ class PublicShopTest extends TestCase
             ->assertExactJson([]);
     }
 
+    public function test_cart_validate_stock_returns_live_stock_and_availability(): void
+    {
+        $category = $this->createCategory();
+        $store = $this->createStore(['activa' => true]);
+
+        $availableProduct = $this->createProduct($category, [
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Con Stock',
+            'slug' => 'producto-con-stock-test',
+            'stock' => 15,
+            'precio' => 20000,
+            'precio_oferta' => 18000,
+            'activo' => true,
+        ]);
+
+        $outOfStockProduct = $this->createProduct($category, [
+            'tienda_id' => $store->id,
+            'nombre' => 'Producto Agotado',
+            'slug' => 'producto-agotado-test',
+            'stock' => 0,
+            'precio' => 50000,
+            'precio_oferta' => null,
+            'activo' => true,
+        ]);
+
+        $response = $this->getJson("/carrito/validar-stock?ids={$availableProduct->id},{$outOfStockProduct->id}");
+
+        $response->assertOk()
+            ->assertJson([
+                $availableProduct->id => [
+                    'id' => $availableProduct->id,
+                    'nombre' => 'Producto Con Stock',
+                    'stock' => 15,
+                    'precio' => 18000,
+                    'activo' => true,
+                ],
+                $outOfStockProduct->id => [
+                    'id' => $outOfStockProduct->id,
+                    'nombre' => 'Producto Agotado',
+                    'stock' => 0,
+                    'precio' => 50000,
+                    'activo' => true,
+                ],
+            ]);
+    }
+
     private function createCategory(array $overrides = []): Category
     {
         return Category::create(array_merge([

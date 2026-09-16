@@ -158,4 +158,30 @@ class ProductsController extends Controller
 
         return 'Vista privada del producto.';
     }
+
+    public function validateCartStock(Request $request)
+    {
+        $rawIds = (string) $request->query('ids', '');
+        $ids = array_values(array_filter(array_map('intval', explode(',', $rawIds))));
+
+        if (empty($ids)) {
+            return response()->json([]);
+        }
+
+        $products = Product::whereIn('id', $ids)
+            ->with('tienda')
+            ->get()
+            ->mapWithKeys(function (Product $p) {
+                $isAvailable = (bool) ($p->activo && $p->publicado && ($p->tienda?->activa ?? false));
+                return [$p->id => [
+                    'id' => $p->id,
+                    'nombre' => $p->nombre,
+                    'stock' => $isAvailable ? max(0, (int) $p->stock) : 0,
+                    'precio' => (int) $p->precio_final,
+                    'activo' => $isAvailable,
+                ]];
+            });
+
+        return response()->json($products);
+    }
 }

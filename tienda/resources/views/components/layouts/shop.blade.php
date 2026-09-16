@@ -6,6 +6,7 @@
     <title>{{ $title ?? config('app.name') }}</title>
     <meta name="description" content="{{ $description ?? '' }}">
     <meta name="app-url" content="{{ url('/') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/shop.css', 'resources/js/shop.js'])
     {{ $head ?? '' }}
 </head>
