@@ -171,8 +171,23 @@ class ProductsController extends Controller
         $products = Product::whereIn('id', $ids)
             ->with('tienda')
             ->get()
-            ->mapWithKeys(function (Product $p) {
-                $isAvailable = (bool) ($p->activo && $p->publicado && ($p->tienda?->activa ?? false));
+            ->mapWithKeys(function (Product $p) use ($request) {
+                $isPublic = (bool) (
+                    $p->activo
+                    && (int) $p->estado_publicacion_id === Product::PUBLICACION_ACTIVO
+                    && (int) $p->estado_revision_id === Product::REVISION_APROBADO
+                    && ! $p->bloqueado
+                    && ($p->tienda?->activa ?? false)
+                );
+
+                $user = auth()->user() ?? $request->user();
+                $canPreviewPrivate = $user && (
+                    (method_exists($user, 'hasRole') && $user->hasRole('admin'))
+                    || (int) $p->tienda?->user_id === (int) $user->id
+                );
+
+                $isAvailable = $isPublic || $canPreviewPrivate;
+
                 return [$p->id => [
                     'id' => $p->id,
                     'nombre' => $p->nombre,
@@ -182,6 +197,8 @@ class ProductsController extends Controller
                 ]];
             });
 
-        return response()->json($products);
+        return response()
+            ->json($products)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 }

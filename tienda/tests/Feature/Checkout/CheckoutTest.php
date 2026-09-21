@@ -62,6 +62,29 @@ class CheckoutTest extends TestCase
         $this->assertSame(3, $product->fresh()->stock);
     }
 
+    public function test_checkout_allows_buying_exact_available_stock(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createPublicProduct(stock: 47, price: 1000);
+
+        $response = $this->actingAs($user)
+            ->post(route('checkout.store'), $this->checkoutPayload([
+                ['id' => $product->id, 'qty' => 47],
+            ]));
+
+        $order = Order::first();
+
+        $response->assertRedirect(route('checkout.confirmacion', $order));
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'cantidad' => 47,
+            'precio_unitario' => 1000,
+            'total' => 47000,
+        ]);
+        $this->assertSame(0, $product->fresh()->stock);
+    }
+
     public function test_checkout_links_order_to_authenticated_user(): void
     {
         $user = User::factory()->create();
@@ -237,6 +260,50 @@ class CheckoutTest extends TestCase
 
         $this->assertDatabaseCount('orders', 0);
         $this->assertSame(1, $product->fresh()->stock);
+    }
+
+    public function test_checkout_rejects_product_when_stock_was_depleted_before_submit(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createPublicProduct(stock: 47);
+        $product->update(['stock' => 0]);
+
+        $this->actingAs($user)
+            ->from(route('checkout.create'))
+            ->post(route('checkout.store'), $this->checkoutPayload([
+                ['id' => $product->id, 'qty' => 47],
+            ]))
+            ->assertRedirect(route('checkout.create'))
+            ->assertSessionHasErrors('cart');
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertSame(0, $product->fresh()->stock);
+    }
+
+    public function test_second_buyer_is_rejected_after_first_buyer_consumes_all_stock(): void
+    {
+        $firstBuyer = User::factory()->create();
+        $secondBuyer = User::factory()->create();
+        $product = $this->createPublicProduct(stock: 47, price: 1000);
+
+        $this->actingAs($firstBuyer)
+            ->post(route('checkout.store'), $this->checkoutPayload([
+                ['id' => $product->id, 'qty' => 47],
+            ]))
+            ->assertRedirect(route('checkout.confirmacion', Order::first()));
+
+        $this->assertSame(0, $product->fresh()->stock);
+
+        $this->actingAs($secondBuyer)
+            ->from(route('checkout.create'))
+            ->post(route('checkout.store'), $this->checkoutPayload([
+                ['id' => $product->id, 'qty' => 47],
+            ]))
+            ->assertRedirect(route('checkout.create'))
+            ->assertSessionHasErrors('cart');
+
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertSame(0, $product->fresh()->stock);
     }
 
     public function test_checkout_rejects_product_from_inactive_store(): void

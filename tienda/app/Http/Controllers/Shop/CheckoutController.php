@@ -42,11 +42,27 @@ class CheckoutController extends Controller
                 ->groupBy(fn($item) => (int) $item['id'])
                 ->map(fn($rows) => $rows->sum(fn($row) => (int) $row['qty']));
 
-            $products = Product::publicados()
-                ->with(['tienda', 'deliveryTypes'])
+            $products = Product::with(['tienda', 'deliveryTypes'])
                 ->whereIn('id', $quantities->keys())
                 ->lockForUpdate()
                 ->get()
+                ->filter(function (Product $p) use ($request) {
+                    $isPublic = (bool) (
+                        $p->activo
+                        && ! $p->bloqueado
+                        && (int) $p->estado_publicacion_id === Product::PUBLICACION_ACTIVO
+                        && (int) $p->estado_revision_id === Product::REVISION_APROBADO
+                        && ($p->tienda?->activa ?? false)
+                    );
+
+                    $user = $request->user();
+                    $canPreviewPrivate = $user && (
+                        (method_exists($user, 'hasRole') && $user->hasRole('admin'))
+                        || (int) $p->tienda?->user_id === (int) $user->id
+                    );
+
+                    return $isPublic || $canPreviewPrivate;
+                })
                 ->keyBy('id');
 
             if ($products->count() !== $quantities->count()) {

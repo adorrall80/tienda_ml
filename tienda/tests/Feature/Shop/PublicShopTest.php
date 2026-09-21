@@ -553,6 +553,55 @@ class PublicShopTest extends TestCase
             ]);
     }
 
+    public function test_cart_validate_stock_marks_unavailable_products_as_inactive(): void
+    {
+        $category = $this->createCategory();
+        $activeStore = $this->createStore(['activa' => true]);
+        $inactiveStore = $this->createStore(['activa' => false]);
+
+        $pausedProduct = $this->createProduct($category, [
+            'tienda_id' => $activeStore->id,
+            'nombre' => 'Producto Pausado',
+            'slug' => 'producto-pausado-stock-test',
+            'stock' => 10,
+            'estado_publicacion_id' => Product::PUBLICACION_PAUSADO,
+        ]);
+        $rejectedProduct = $this->createProduct($category, [
+            'tienda_id' => $activeStore->id,
+            'nombre' => 'Producto Rechazado Stock',
+            'slug' => 'producto-rechazado-stock-test',
+            'stock' => 10,
+            'estado_revision_id' => Product::REVISION_RECHAZADO,
+        ]);
+        $blockedProduct = $this->createProduct($category, [
+            'tienda_id' => $activeStore->id,
+            'nombre' => 'Producto Bloqueado Stock',
+            'slug' => 'producto-bloqueado-stock-test',
+            'stock' => 10,
+            'bloqueado' => true,
+        ]);
+        $inactiveStoreProduct = $this->createProduct($category, [
+            'tienda_id' => $inactiveStore->id,
+            'nombre' => 'Producto Tienda Inactiva Stock',
+            'slug' => 'producto-tienda-inactiva-stock-test',
+            'stock' => 10,
+        ]);
+
+        $ids = collect([$pausedProduct, $rejectedProduct, $blockedProduct, $inactiveStoreProduct])
+            ->pluck('id')
+            ->implode(',');
+
+        $response = $this->getJson("/carrito/validar-stock?ids={$ids}");
+
+        $response->assertOk()
+            ->assertJson([
+                $pausedProduct->id => ['stock' => 0, 'activo' => false],
+                $rejectedProduct->id => ['stock' => 0, 'activo' => false],
+                $blockedProduct->id => ['stock' => 0, 'activo' => false],
+                $inactiveStoreProduct->id => ['stock' => 0, 'activo' => false],
+            ]);
+    }
+
     private function createCategory(array $overrides = []): Category
     {
         return Category::create(array_merge([

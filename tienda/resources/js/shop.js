@@ -79,6 +79,14 @@ const Cart = {
         }
         items[idx].qty = nextQty;
         if (maxStock !== null) items[idx].stock = maxStock;
+      } else {
+        let nextQty = Number(product.qty) || 1;
+        if (maxStock !== null && nextQty > maxStock) {
+          nextQty = maxStock;
+          showToast(`Stock máximo disponible: ${maxStock}`, 'error');
+        }
+
+        items[idx] = { ...items[idx], ...product, qty: nextQty, stock: maxStock };
       }
     } else {
       let qty = Number(product.qty) || 1;
@@ -142,13 +150,13 @@ const Cart = {
   },
   async syncStock() {
     const items = this.getAll();
-    if (!items.length) return;
+    if (!items.length) return true;
     const ids = [...new Set(items.map(i => i.id).filter(Boolean))];
-    if (!ids.length) return;
+    if (!ids.length) return true;
 
     try {
-      const res = await fetch(appPath(`/carrito/validar-stock?ids=${ids.join(',')}`));
-      if (!res.ok) return;
+      const res = await fetch(appPath(`/carrito/validar-stock?ids=${ids.join(',')}&_=${Date.now()}`), { cache: 'no-store' });
+      if (!res.ok) return false;
       const liveData = await res.json();
       let changed = false;
       const updated = items.map(item => {
@@ -179,8 +187,11 @@ const Cart = {
         this.updateCounter();
         this.renderPage();
       }
+
+      return true;
     } catch (e) {
       console.warn('No se pudo sincronizar stock en vivo:', e);
+      return false;
     }
   },
   renderPage() {
@@ -483,14 +494,13 @@ function initAddToCart() {
       const scope = btn.closest('.product-main-col, .product-side-col, .product-detail-layout') || document;
       const qtyEl = scope.querySelector('.quantity-section .qty-input');
       const isRedirect = btn.dataset.cartRedirect === 'true';
+      const cartProduct = { id, title, price, img, slug, stock, qty: qtyEl ? parseInt(qtyEl.value) : 1 };
 
       if (isRedirect) {
-        if (!Cart.has(id)) {
-          Cart.add({ id, title, price, img, slug, stock, qty: qtyEl ? parseInt(qtyEl.value) : 1 }, { increment: false, notify: false });
-        }
+        Cart.add(cartProduct, { increment: false, notify: false });
         window.location.href = btn.dataset.cartUrl || '/carrito';
       } else {
-        Cart.add({ id, title, price, img, slug, stock, qty: qtyEl ? parseInt(qtyEl.value) : 1 }, { increment: true, notify: true });
+        Cart.add(cartProduct, { increment: true, notify: true });
       }
     });
   });
@@ -504,7 +514,42 @@ function initCartPage() {
   $('[data-cart-clear]')?.addEventListener('click', () => {
     Cart.clear();
   });
-  $('[data-cart-checkout]')?.addEventListener('click', () => {
+  $('[data-cart-checkout]')?.addEventListener('click', async () => {
+    const checkoutBtn = $('[data-cart-checkout]');
+    const originalText = checkoutBtn?.textContent || 'Continuar compra';
+    if (checkoutBtn) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = 'Validando stock...';
+    }
+
+    const synced = await Cart.syncStock();
+    const items = Cart.getAll();
+    const hasStockProblem = items.some(item => {
+      const stock = (item.stock !== undefined && item.stock !== null) ? Number(item.stock) : null;
+      const qty = Math.max(1, Number(item.qty) || 1);
+      return stock !== null && (stock <= 0 || qty > stock);
+    });
+
+    if (checkoutBtn) checkoutBtn.textContent = originalText;
+
+    if (!synced) {
+      Cart.renderPage();
+      showToast('No pudimos validar el stock. Intenta nuevamente.', 'error');
+      return;
+    }
+
+    if (!items.length) {
+      Cart.renderPage();
+      showToast('Tu carrito está vacío', 'error');
+      return;
+    }
+
+    if (hasStockProblem) {
+      Cart.renderPage();
+      showToast('Revisa los productos sin stock antes de continuar.', 'error');
+      return;
+    }
+
     window.location.href = appPath('/checkout');
   });
 }

@@ -93,6 +93,21 @@ Objetivo: endurecer entradas de texto, cabeceras HTTP y controles anti-abuso des
 - [x] 7.6 Validar textos antes de guardar contra palabras bloqueadas.
 - [x] 7.7 Agregar tests de seguridad.
 
+## Iteracion 8: validacion de stock en carrito y checkout
+
+Objetivo: corregir la validacion de stock en vivo para permitir comprar exactamente el stock disponible y bloquear correctamente cuando otro comprador confirma primero.
+
+- [x] 8.1 Corregir endpoint `/carrito/validar-stock` para que use la misma logica de productos publicados que el catalogo publico.
+- [x] 8.2 Eliminar uso de la propiedad inexistente `$p->publicado` en `ProductsController::validateCartStock`.
+- [x] 8.3 Validar que un producto activo, aprobado, no bloqueado y de tienda activa devuelva `activo: true` y su stock real.
+- [x] 8.4 Validar que productos pausados, rechazados, bloqueados o de tienda inactiva devuelvan `activo: false` y `stock: 0`.
+- [x] 8.5 Reforzar el boton `Continuar compra` para sincronizar stock justo antes de navegar al checkout.
+- [x] 8.6 Mantener la validacion final en `CheckoutController::store` con transaccion, `lockForUpdate()` y rechazo cuando `stock < qty`.
+- [x] 8.7 Agregar prueba para permitir comprar cantidad igual al stock disponible.
+- [x] 8.8 Agregar prueba para rechazar compra cuando el stock se agota antes de confirmar.
+- [x] 8.9 Probar escenario de dos compradores con prueba automatizada: ambos intentan comprar todo el stock, el primero confirma y el segundo queda bloqueado.
+- [x] 8.10 Ejecutar suite de tests y build frontend.
+
 ## Decisiones pendientes
 
 - [x] D.1 Definir si un cliente puede convertirse en vendedor desde la app o solo admin asigna el rol.
@@ -198,4 +213,19 @@ Objetivo: endurecer entradas de texto, cabeceras HTTP y controles anti-abuso des
 - Se creo/verifico enlace `public/storage` para servir imagenes subidas desde `/storage/products/...`.
 - Se ajusto ficha de producto para hablar de solicitud y coordinacion con tienda, sin prometer pagos online.
 - Resultado actual: `php artisan test` pasa completo con `96 passed (302 assertions)`.
+- Resultado frontend: `npm run build` completado correctamente.
+
+### 2026-09-16
+
+- Se diagnostico bug de stock en carrito: `/carrito/validar-stock` devolvia `stock: 0` porque usaba `$p->publicado`, propiedad inexistente en `Product`.
+- Se agrego la Iteracion 8 para alinear la validacion del carrito con `Product::publicados()` y reforzar la sincronizacion antes de checkout.
+- Se definio comportamiento ante concurrencia: el carrito no reserva stock; quien confirma primero descuenta stock y el segundo queda bloqueado por validacion en backend.
+- Se corrigio `/carrito/validar-stock` para usar la logica real de publicacion: producto activo, publicacion activa, revision aprobada, no bloqueado y tienda activa.
+- Se reforzo el boton `Continuar compra` para sincronizar stock en vivo antes de navegar a `/checkout`.
+- Se reforzo `Solicitar compra` para actualizar cantidad, precio y stock aunque el producto ya exista en el carrito, evitando datos viejos de `localStorage`.
+- Se evito cache del endpoint de validacion de stock con `Cache-Control: no-store` y `fetch` sin cache.
+- Se agregaron pruebas para stock disponible, productos no disponibles, compra exacta del stock y rechazo cuando el stock ya fue agotado antes de confirmar.
+- Verificacion local: `/carrito/validar-stock?ids=1` devuelve `activo: true` y `stock: 47` para Samsung Galaxy A54 mientras el producto tiene 47 unidades.
+- Iteracion 8 completada.
+- Resultado actual: `php artisan test` pasa completo con `134 passed (520 assertions)`.
 - Resultado frontend: `npm run build` completado correctamente.
