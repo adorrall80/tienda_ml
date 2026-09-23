@@ -1,0 +1,518 @@
+- generic [active] [ref=e1]:
+  - navigation "Menú móvil" [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: TiendaMV
+      - button "Cerrar menú" [ref=e5] [cursor=pointer]: ✕
+    - generic [ref=e6]:
+      - link "Ingresa a tu cuenta" [ref=e7] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/login
+      - link "Crea tu cuenta gratis" [ref=e8] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/register
+    - generic [ref=e9]:
+      - link "📱 Electrónica" [ref=e10] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=electronica
+      - link "👕 Ropa y Moda" [ref=e11] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=ropa
+      - link "🏠 Hogar" [ref=e12] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=hogar
+      - link "⚽ Deportes" [ref=e13] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=deportes
+      - link "🚗 Automotriz" [ref=e14] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=automotriz
+      - link "🧸 Juguetes" [ref=e15] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=juguetes
+      - link "🏢 Inmuebles" [ref=e16] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=inmuebles
+      - link "🔧 Servicios" [ref=e17] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/productos?cat=servicios
+      - link "🛒 Mi carrito" [ref=e18] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/carrito
+  - banner [ref=e19]:
+    - generic [ref=e20]:
+      - link "TiendaMV inicio" [ref=e21] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000
+        - text: TiendaMV
+      - search [ref=e22]:
+        - combobox "Categoría" [ref=e23] [cursor=pointer]:
+          - option "Todas las categorías" [selected]
+          - option "Electrónica"
+          - option "Ropa y Moda"
+          - option "Hogar"
+          - option "Deportes"
+          - option "Automotriz"
+          - option "Juguetes"
+          - option "Inmuebles"
+          - option "Servicios"
+        - searchbox "Buscar" [ref=e25]
+        - button "Buscar" [ref=e26] [cursor=pointer]: 🔍
+      - generic [ref=e27]:
+        - button "Ubicación" [ref=e28] [cursor=pointer]:
+          - generic [ref=e29]: 📍
+          - generic [ref=e30]: Santiago
+        - link "Ingresa" [ref=e31] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/login
+        - link "Crea tu cuenta" [ref=e32] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/register
+        - link "Vende" [ref=e33] [cursor=pointer]:
+          - /url: "#"
+        - link "Carrito" [ref=e34] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/carrito
+          - text: 🛒
+  - navigation "Categorías principales" [ref=e35]:
+    - list [ref=e37]:
+      - listitem [ref=e38]:
+        - link "Electrónica" [ref=e39] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=electronica
+      - listitem [ref=e40]:
+        - link "Ropa y Moda" [ref=e41] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=ropa
+      - listitem [ref=e42]:
+        - link "Hogar" [ref=e43] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=hogar
+      - listitem [ref=e44]:
+        - link "Deportes" [ref=e45] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=deportes
+      - listitem [ref=e46]:
+        - link "Automotriz" [ref=e47] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=automotriz
+      - listitem [ref=e48]:
+        - link "Juguetes" [ref=e49] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=juguetes
+      - listitem [ref=e50]:
+        - link "Inmuebles" [ref=e51] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=inmuebles
+      - listitem [ref=e52]:
+        - link "Servicios" [ref=e53] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=servicios
+      - listitem [ref=e54]:
+        - link "Ofertas del día" [ref=e55] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?tag=oferta
+  - main [ref=e56]:
+    - region "Ofertas destacadas" [ref=e57]:
+      - region [ref=e58]:
+        - generic [ref=e59]:
+          - generic "Slide 1 de 3" [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]: Oferta del día
+              - heading "iPhone 15 Pro ¡Solo por hoy!" [level=2] [ref=e63]:
+                - text: iPhone 15 Pro
+                - text: ¡Solo por hoy!
+              - paragraph [ref=e64]: Con envío gratis a todo Chile
+              - generic [ref=e65]: $1.199.990
+              - link "Ver oferta" [ref=e66] [cursor=pointer]:
+                - /url: "#"
+            - img "iPhone 15 Pro ¡Solo por hoy!" [ref=e67]
+          - generic "Slide 2 de 3" [ref=e68]:
+            - generic [ref=e69]:
+              - generic [ref=e70]: Nuevo ingreso
+              - heading "Smart TV 55\" Samsung QLED" [level=2] [ref=e71]:
+                - text: Smart TV 55"
+                - text: Samsung QLED
+              - paragraph [ref=e72]: Hasta 24 cuotas sin interés
+              - generic [ref=e73]: $599.990
+              - link "Ver TVs" [ref=e74] [cursor=pointer]:
+                - /url: "#"
+            - img "Smart TV 55\" Samsung QLED"
+          - generic "Slide 3 de 3" [ref=e75]:
+            - generic [ref=e76]:
+              - generic [ref=e77]: Cyber descuentos
+              - heading "Notebooks HP y Lenovo" [level=2] [ref=e78]:
+                - text: Notebooks HP
+                - text: y Lenovo
+              - paragraph [ref=e79]: Hasta 40% de descuento esta semana
+              - generic [ref=e80]: Desde $449.990
+              - link "Ver notebooks" [ref=e81] [cursor=pointer]:
+                - /url: "#"
+            - img "Notebooks HP y Lenovo"
+        - button "Slide anterior" [ref=e82] [cursor=pointer]: ‹
+        - button "Siguiente slide" [ref=e83] [cursor=pointer]: ›
+        - tablist "Slides" [ref=e84]:
+          - tab "Slide 1" [ref=e85] [cursor=pointer]
+          - tab "Slide 2" [ref=e86] [cursor=pointer]
+          - tab "Slide 3" [ref=e87] [cursor=pointer]
+    - generic [ref=e89]:
+      - heading "Categorías destacadas Ver todas" [level=2] [ref=e90]:
+        - text: Categorías destacadas
+        - link "Ver todas" [ref=e91] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos
+      - generic [ref=e92]:
+        - link "📱 Electrónica" [ref=e93] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=electronica
+          - generic [ref=e94]: 📱
+          - text: Electrónica
+        - link "👕 Ropa y Moda" [ref=e95] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=ropa
+          - generic [ref=e96]: 👕
+          - text: Ropa y Moda
+        - link "🏠 Hogar" [ref=e97] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=hogar
+          - generic [ref=e98]: 🏠
+          - text: Hogar
+        - link "⚽ Deportes" [ref=e99] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=deportes
+          - generic [ref=e100]: ⚽
+          - text: Deportes
+        - link "🚗 Automotriz" [ref=e101] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=automotriz
+          - generic [ref=e102]: 🚗
+          - text: Automotriz
+        - link "🧸 Juguetes" [ref=e103] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=juguetes
+          - generic [ref=e104]: 🧸
+          - text: Juguetes
+        - link "🏢 Inmuebles" [ref=e105] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=inmuebles
+          - generic [ref=e106]: 🏢
+          - text: Inmuebles
+        - link "🔧 Servicios" [ref=e107] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos?cat=servicios
+          - generic [ref=e108]: 🔧
+          - text: Servicios
+    - generic [ref=e110]:
+      - heading "Ofertas del día Ver todas" [level=2] [ref=e111]:
+        - text: Ofertas del día
+        - link "Ver todas" [ref=e112] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos
+      - generic [ref=e113]:
+        - article [ref=e114]:
+          - link "Samsung Galaxy A54 5G 128GB Awesome Black -32% Samsung Galaxy A54 5G 128GB Awesome Black $379.990 $259.990 32% OFF en 12x $21.666 sin interés Envío gratis ★★★★★ (847)" [ref=e115] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e116]:
+              - img "Samsung Galaxy A54 5G 128GB Awesome Black" [ref=e117]
+              - generic [ref=e118]: "-32%"
+            - generic [ref=e119]:
+              - heading "Samsung Galaxy A54 5G 128GB Awesome Black" [level=3] [ref=e120]
+              - paragraph [ref=e121]: $379.990
+              - paragraph [ref=e122]: $259.990
+              - paragraph [ref=e123]: 32% OFF
+              - paragraph [ref=e124]: en 12x $21.666 sin interés
+              - paragraph [ref=e125]: Envío gratis
+              - generic [ref=e126]:
+                - generic [ref=e127]: ★★★★★
+                - generic [ref=e128]: (847)
+        - article [ref=e129]:
+          - link "Notebook HP 15 Intel Core i5 12va Gen 8GB RAM 512GB SSD HOT Notebook HP 15 Intel Core i5 12va Gen 8GB RAM 512GB SSD $699.990 $499.990 29% OFF en 24x $20.833 sin interés Envío gratis ★★★★☆ (312)" [ref=e130] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e131]:
+              - img "Notebook HP 15 Intel Core i5 12va Gen 8GB RAM 512GB SSD" [ref=e132]
+              - generic [ref=e133]: HOT
+            - generic [ref=e134]:
+              - heading "Notebook HP 15 Intel Core i5 12va Gen 8GB RAM 512GB SSD" [level=3] [ref=e135]
+              - paragraph [ref=e136]: $699.990
+              - paragraph [ref=e137]: $499.990
+              - paragraph [ref=e138]: 29% OFF
+              - paragraph [ref=e139]: en 24x $20.833 sin interés
+              - paragraph [ref=e140]: Envío gratis
+              - generic [ref=e141]:
+                - generic [ref=e142]: ★★★★☆
+                - generic [ref=e143]: (312)
+        - article [ref=e144]:
+          - link "Apple AirPods Pro (2da Generación) con MagSafe -23% Apple AirPods Pro (2da Generación) con MagSafe $299.990 $229.990 23% OFF en 12x $19.166 sin interés Envío gratis ★★★★★ (1.203)" [ref=e145] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e146]:
+              - img "Apple AirPods Pro (2da Generación) con MagSafe" [ref=e147]
+              - generic [ref=e148]: "-23%"
+            - generic [ref=e149]:
+              - heading "Apple AirPods Pro (2da Generación) con MagSafe" [level=3] [ref=e150]
+              - paragraph [ref=e151]: $299.990
+              - paragraph [ref=e152]: $229.990
+              - paragraph [ref=e153]: 23% OFF
+              - paragraph [ref=e154]: en 12x $19.166 sin interés
+              - paragraph [ref=e155]: Envío gratis
+              - generic [ref=e156]:
+                - generic [ref=e157]: ★★★★★
+                - generic [ref=e158]: (1.203)
+        - article [ref=e159]:
+          - link "Smart TV LG 50\" 4K UHD ThinQ AI WebOS 23 NUEVO Smart TV LG 50\" 4K UHD ThinQ AI WebOS 23 $649.990 $479.990 26% OFF en 24x $20.000 sin interés Envío gratis ★★★★☆ (564)" [ref=e160] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e161]:
+              - img "Smart TV LG 50\" 4K UHD ThinQ AI WebOS 23" [ref=e162]
+              - generic [ref=e163]: NUEVO
+            - generic [ref=e164]:
+              - heading "Smart TV LG 50\" 4K UHD ThinQ AI WebOS 23" [level=3] [ref=e165]
+              - paragraph [ref=e166]: $649.990
+              - paragraph [ref=e167]: $479.990
+              - paragraph [ref=e168]: 26% OFF
+              - paragraph [ref=e169]: en 24x $20.000 sin interés
+              - paragraph [ref=e170]: Envío gratis
+              - generic [ref=e171]:
+                - generic [ref=e172]: ★★★★☆
+                - generic [ref=e173]: (564)
+        - article [ref=e174]:
+          - link "Zapatillas Nike Air Max 270 Hombre Negro/Blanco -29% Zapatillas Nike Air Max 270 Hombre Negro/Blanco $119.990 $84.990 29% OFF en 6x $14.165 sin interés Envío gratis ★★★★★ (2.109)" [ref=e175] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e176]:
+              - img "Zapatillas Nike Air Max 270 Hombre Negro/Blanco" [ref=e177]
+              - generic [ref=e178]: "-29%"
+            - generic [ref=e179]:
+              - heading "Zapatillas Nike Air Max 270 Hombre Negro/Blanco" [level=3] [ref=e180]
+              - paragraph [ref=e181]: $119.990
+              - paragraph [ref=e182]: $84.990
+              - paragraph [ref=e183]: 29% OFF
+              - paragraph [ref=e184]: en 6x $14.165 sin interés
+              - paragraph [ref=e185]: Envío gratis
+              - generic [ref=e186]:
+                - generic [ref=e187]: ★★★★★
+                - generic [ref=e188]: (2.109)
+        - article [ref=e189]:
+          - link "Refrigerador Samsung 427L No Frost Twin Cooling Plus Inox -20% Refrigerador Samsung 427L No Frost Twin Cooling Plus Inox $749.990 $599.990 20% OFF en 24x $25.000 sin interés Envío gratis ★★★★☆ (389)" [ref=e190] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e191]:
+              - img "Refrigerador Samsung 427L No Frost Twin Cooling Plus Inox" [ref=e192]
+              - generic [ref=e193]: "-20%"
+            - generic [ref=e194]:
+              - heading "Refrigerador Samsung 427L No Frost Twin Cooling Plus Inox" [level=3] [ref=e195]
+              - paragraph [ref=e196]: $749.990
+              - paragraph [ref=e197]: $599.990
+              - paragraph [ref=e198]: 20% OFF
+              - paragraph [ref=e199]: en 24x $25.000 sin interés
+              - paragraph [ref=e200]: Envío gratis
+              - generic [ref=e201]:
+                - generic [ref=e202]: ★★★★☆
+                - generic [ref=e203]: (389)
+        - article [ref=e204]:
+          - link "Sony PlayStation 5 825GB SSD Consola Standard Edition HOT Sony PlayStation 5 825GB SSD Consola Standard Edition $699.990 en 24x $29.166 sin interés Envío gratis ★★★★★ (4.521)" [ref=e205] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e206]:
+              - img "Sony PlayStation 5 825GB SSD Consola Standard Edition" [ref=e207]
+              - generic [ref=e208]: HOT
+            - generic [ref=e209]:
+              - heading "Sony PlayStation 5 825GB SSD Consola Standard Edition" [level=3] [ref=e210]
+              - paragraph [ref=e211]: $699.990
+              - paragraph [ref=e212]: en 24x $29.166 sin interés
+              - paragraph [ref=e213]: Envío gratis
+              - generic [ref=e214]:
+                - generic [ref=e215]: ★★★★★
+                - generic [ref=e216]: (4.521)
+        - article [ref=e217]:
+          - link "DJI Mini 3 Pro Drone con cámara 4K HDR hasta 34 min vuelo NUEVO DJI Mini 3 Pro Drone con cámara 4K HDR hasta 34 min vuelo $1.099.990 $899.990 18% OFF en 24x $37.500 sin interés Envío gratis ★★★★★ (218)" [ref=e218] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e219]:
+              - img "DJI Mini 3 Pro Drone con cámara 4K HDR hasta 34 min vuelo" [ref=e220]
+              - generic [ref=e221]: NUEVO
+            - generic [ref=e222]:
+              - heading "DJI Mini 3 Pro Drone con cámara 4K HDR hasta 34 min vuelo" [level=3] [ref=e223]
+              - paragraph [ref=e224]: $1.099.990
+              - paragraph [ref=e225]: $899.990
+              - paragraph [ref=e226]: 18% OFF
+              - paragraph [ref=e227]: en 24x $37.500 sin interés
+              - paragraph [ref=e228]: Envío gratis
+              - generic [ref=e229]:
+                - generic [ref=e230]: ★★★★★
+                - generic [ref=e231]: (218)
+    - generic [ref=e233]:
+      - heading "Más vendidos Ver todos" [level=2] [ref=e234]:
+        - text: Más vendidos
+        - link "Ver todos" [ref=e235] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/productos
+      - generic [ref=e236]:
+        - article [ref=e237]:
+          - link "Audífonos Sony WH-1000XM5 Noise Cancelling -15% Audífonos Sony WH-1000XM5 Noise Cancelling $305.990 $259.990 15% OFF en 12x $21.666 sin interés Envío gratis ★★★★★ (1.876)" [ref=e238] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e239]:
+              - img "Audífonos Sony WH-1000XM5 Noise Cancelling" [ref=e240]
+              - generic [ref=e241]: "-15%"
+            - generic [ref=e242]:
+              - heading "Audífonos Sony WH-1000XM5 Noise Cancelling" [level=3] [ref=e243]
+              - paragraph [ref=e244]: $305.990
+              - paragraph [ref=e245]: $259.990
+              - paragraph [ref=e246]: 15% OFF
+              - paragraph [ref=e247]: en 12x $21.666 sin interés
+              - paragraph [ref=e248]: Envío gratis
+              - generic [ref=e249]:
+                - generic [ref=e250]: ★★★★★
+                - generic [ref=e251]: (1.876)
+        - article [ref=e252]:
+          - link "Silla Gamer Ergonómica Reclinable RGB LED -22% Silla Gamer Ergonómica Reclinable RGB LED $192.300 $149.990 22% OFF en 12x $12.499 sin interés Envío gratis ★★★★☆ (3.241)" [ref=e253] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e254]:
+              - img "Silla Gamer Ergonómica Reclinable RGB LED" [ref=e255]
+              - generic [ref=e256]: "-22%"
+            - generic [ref=e257]:
+              - heading "Silla Gamer Ergonómica Reclinable RGB LED" [level=3] [ref=e258]
+              - paragraph [ref=e259]: $192.300
+              - paragraph [ref=e260]: $149.990
+              - paragraph [ref=e261]: 22% OFF
+              - paragraph [ref=e262]: en 12x $12.499 sin interés
+              - paragraph [ref=e263]: Envío gratis
+              - generic [ref=e264]:
+                - generic [ref=e265]: ★★★★☆
+                - generic [ref=e266]: (3.241)
+        - article [ref=e267]:
+          - link "Aspiradora Robot Xiaomi Mi Robot Vacuum S10 -10% Aspiradora Robot Xiaomi Mi Robot Vacuum S10 $333.320 $299.990 10% OFF en 12x $24.999 sin interés Envío gratis ★★★★★ (2.087)" [ref=e268] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e269]:
+              - img "Aspiradora Robot Xiaomi Mi Robot Vacuum S10" [ref=e270]
+              - generic [ref=e271]: "-10%"
+            - generic [ref=e272]:
+              - heading "Aspiradora Robot Xiaomi Mi Robot Vacuum S10" [level=3] [ref=e273]
+              - paragraph [ref=e274]: $333.320
+              - paragraph [ref=e275]: $299.990
+              - paragraph [ref=e276]: 10% OFF
+              - paragraph [ref=e277]: en 12x $24.999 sin interés
+              - paragraph [ref=e278]: Envío gratis
+              - generic [ref=e279]:
+                - generic [ref=e280]: ★★★★★
+                - generic [ref=e281]: (2.087)
+        - article [ref=e282]:
+          - link "Cafetera Nespresso Vertuo Pop Env120 Roja Cafetera Nespresso Vertuo Pop Env120 Roja $89.990 en 6x $14.998 sin interés Envío gratis ★★★★★ (1.543)" [ref=e283] [cursor=pointer]:
+            - /url: "#"
+            - img "Cafetera Nespresso Vertuo Pop Env120 Roja" [ref=e285]
+            - generic [ref=e286]:
+              - heading "Cafetera Nespresso Vertuo Pop Env120 Roja" [level=3] [ref=e287]
+              - paragraph [ref=e288]: $89.990
+              - paragraph [ref=e289]: en 6x $14.998 sin interés
+              - paragraph [ref=e290]: Envío gratis
+              - generic [ref=e291]:
+                - generic [ref=e292]: ★★★★★
+                - generic [ref=e293]: (1.543)
+        - article [ref=e294]:
+          - link "Monitor LG 27\" 4K IPS UltraFine 144Hz DisplayHDR -18% Monitor LG 27\" 4K IPS UltraFine 144Hz DisplayHDR $549.990 $449.990 18% OFF en 24x $18.750 sin interés Envío gratis ★★★★★ (965)" [ref=e295] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e296]:
+              - img "Monitor LG 27\" 4K IPS UltraFine 144Hz DisplayHDR" [ref=e297]
+              - generic [ref=e298]: "-18%"
+            - generic [ref=e299]:
+              - heading "Monitor LG 27\" 4K IPS UltraFine 144Hz DisplayHDR" [level=3] [ref=e300]
+              - paragraph [ref=e301]: $549.990
+              - paragraph [ref=e302]: $449.990
+              - paragraph [ref=e303]: 18% OFF
+              - paragraph [ref=e304]: en 24x $18.750 sin interés
+              - paragraph [ref=e305]: Envío gratis
+              - generic [ref=e306]:
+                - generic [ref=e307]: ★★★★★
+                - generic [ref=e308]: (965)
+        - article [ref=e309]:
+          - link "Samsung Galaxy Watch 6 Classic 47mm Negro -24% Samsung Galaxy Watch 6 Classic 47mm Negro $329.990 $249.990 24% OFF en 12x $20.833 sin interés Envío gratis ★★★★☆ (742)" [ref=e310] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e311]:
+              - img "Samsung Galaxy Watch 6 Classic 47mm Negro" [ref=e312]
+              - generic [ref=e313]: "-24%"
+            - generic [ref=e314]:
+              - heading "Samsung Galaxy Watch 6 Classic 47mm Negro" [level=3] [ref=e315]
+              - paragraph [ref=e316]: $329.990
+              - paragraph [ref=e317]: $249.990
+              - paragraph [ref=e318]: 24% OFF
+              - paragraph [ref=e319]: en 12x $20.833 sin interés
+              - paragraph [ref=e320]: Envío gratis
+              - generic [ref=e321]:
+                - generic [ref=e322]: ★★★★☆
+                - generic [ref=e323]: (742)
+        - article [ref=e324]:
+          - link "Apple iPad 10ma Gen 64GB Wi-Fi Azul -18% Apple iPad 10ma Gen 64GB Wi-Fi Azul $599.990 $489.990 18% OFF en 24x $20.416 sin interés Envío gratis ★★★★★ (1.321)" [ref=e325] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e326]:
+              - img "Apple iPad 10ma Gen 64GB Wi-Fi Azul" [ref=e327]
+              - generic [ref=e328]: "-18%"
+            - generic [ref=e329]:
+              - heading "Apple iPad 10ma Gen 64GB Wi-Fi Azul" [level=3] [ref=e330]
+              - paragraph [ref=e331]: $599.990
+              - paragraph [ref=e332]: $489.990
+              - paragraph [ref=e333]: 18% OFF
+              - paragraph [ref=e334]: en 24x $20.416 sin interés
+              - paragraph [ref=e335]: Envío gratis
+              - generic [ref=e336]:
+                - generic [ref=e337]: ★★★★★
+                - generic [ref=e338]: (1.321)
+    - generic [ref=e341]:
+      - generic [ref=e342]:
+        - heading "Publicá gratis en TiendaMV" [level=2] [ref=e343]
+        - paragraph [ref=e344]: Llega a millones de compradores en todo Chile. Sin comisiones en tu primera venta.
+      - link "Empezar a vender" [ref=e345] [cursor=pointer]:
+        - /url: "#"
+  - contentinfo [ref=e346]:
+    - generic [ref=e349]:
+      - generic [ref=e350]:
+        - heading "Sobre TiendaMV" [level=4] [ref=e351]
+        - list [ref=e352]:
+          - listitem [ref=e353]:
+            - link "Acerca de nosotros" [ref=e354] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e355]:
+            - link "Noticias" [ref=e356] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e357]:
+            - link "Trabaja con nosotros" [ref=e358] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e359]:
+            - link "Sustentabilidad" [ref=e360] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e361]:
+        - heading "Información" [level=4] [ref=e362]
+        - list [ref=e363]:
+          - listitem [ref=e364]:
+            - link "Centro de ayuda" [ref=e365] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e366]:
+            - link "Cómo comprar" [ref=e367] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e368]:
+            - link "Cómo vender" [ref=e369] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e370]:
+            - link "Resolver un problema" [ref=e371] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e372]:
+        - heading "Servicios" [level=4] [ref=e373]
+        - list [ref=e374]:
+          - listitem [ref=e375]:
+            - link "Pagos" [ref=e376] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e377]:
+            - link "Envíos" [ref=e378] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e379]:
+            - link "Crédito" [ref=e380] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e381]:
+            - link "Publicidad" [ref=e382] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e383]:
+        - heading "Mi cuenta" [level=4] [ref=e384]
+        - list [ref=e385]:
+          - listitem [ref=e386]:
+            - link "Mis pedidos" [ref=e387] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e388]:
+            - link "Mis favoritos" [ref=e389] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e390]:
+            - link "Historial de pagos" [ref=e391] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e392]:
+        - heading "Descarga la app" [level=4] [ref=e393]
+        - generic [ref=e394]:
+          - link "🍎 Descarga en App Store" [ref=e395] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e396]: 🍎
+            - generic [ref=e397]:
+              - generic [ref=e398]: Descarga en
+              - strong [ref=e399]: App Store
+          - link "▶ Disponible en Google Play" [ref=e400] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e401]: ▶
+            - generic [ref=e402]:
+              - generic [ref=e403]: Disponible en
+              - strong [ref=e404]: Google Play
+        - heading "Síguenos" [level=4] [ref=e405]
+        - generic [ref=e406]:
+          - link "📸" [ref=e407] [cursor=pointer]:
+            - /url: "#"
+          - link "👥" [ref=e408] [cursor=pointer]:
+            - /url: "#"
+          - link "🐦" [ref=e409] [cursor=pointer]:
+            - /url: "#"
+    - generic [ref=e411]:
+      - paragraph [ref=e412]:
+        - text: © 2026 TiendaMV — Todos los derechos reservados |
+        - link "Términos y condiciones" [ref=e413] [cursor=pointer]:
+          - /url: "#"
+        - text: "|"
+        - link "Privacidad" [ref=e414] [cursor=pointer]:
+          - /url: "#"
+      - generic [ref=e415]:
+        - generic [ref=e416]: VISA
+        - generic [ref=e417]: Mastercard
+        - generic [ref=e418]: Webpay
+        - generic [ref=e419]: Redcompra
+        - generic [ref=e420]: PayPal

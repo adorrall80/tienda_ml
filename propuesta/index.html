@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiendaMV — Compra y vende en Chile</title>
+  <meta name="description" content="Compra y vende todo en TiendaMV Chile. Smartphones, notebooks, ropa, electrodomésticos y más con envío gratis.">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23FFE600'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='20' font-weight='900' fill='%233483FA'>T</text></svg>">
+</head>
+<body>
+
+<!-- ===== MOBILE NAV ===== -->
+<div class="mobile-nav-overlay"></div>
+<nav class="mobile-nav" aria-label="Menú móvil">
+  <div class="mobile-nav-header">
+    <span class="logo">Tienda<span>MV</span></span>
+    <button class="mobile-nav-close" aria-label="Cerrar menú">✕</button>
+  </div>
+  <div class="mobile-nav-user">
+    <a href="#">Ingresa a tu cuenta</a>
+    <a href="#">Crea tu cuenta gratis</a>
+  </div>
+  <div class="mobile-nav-list">
+    <a href="#">Electrónica</a>
+    <a href="#">Ropa y Moda</a>
+    <a href="#">Hogar</a>
+    <a href="#">Deportes</a>
+    <a href="#">Automotriz</a>
+    <a href="#">Juguetes</a>
+    <a href="#">Inmuebles</a>
+    <a href="#">Servicios</a>
+    <a href="#">Mis compras</a>
+    <a href="#">Mis favoritos</a>
+    <a href="carrito.html">Mi carrito</a>
+  </div>
+</nav>
+
+<!-- ===== HEADER ===== -->
+<header class="header-top" role="banner">
+  <div class="container">
+
+    <button class="mobile-menu-btn" aria-label="Abrir menú">☰</button>
+
+    <a href="index.html" class="logo" aria-label="TiendaMV inicio">Tienda<span>MV</span></a>
+
+    <form class="search-form" role="search" action="productos.html" method="get">
+      <select class="search-category" aria-label="Categoría de búsqueda" name="cat">
+        <option value="">Todas las categorías</option>
+        <option>Electrónica</option>
+        <option>Ropa y Moda</option>
+        <option>Hogar y Jardín</option>
+        <option>Deportes</option>
+        <option>Automotriz</option>
+        <option>Juguetes</option>
+        <option>Inmuebles</option>
+        <option>Servicios</option>
+      </select>
+      <div class="search-input-wrap">
+        <input class="search-input" type="search" name="q" placeholder="Buscar productos, marcas y más…" autocomplete="off" aria-label="Buscar en TiendaMV">
+        <div class="search-autocomplete" role="listbox" aria-label="Sugerencias"></div>
+      </div>
+      <button class="search-btn" type="submit" aria-label="Buscar">🔍</button>
+    </form>
+
+    <div class="header-actions">
+      <button class="location-btn" aria-label="Seleccionar ubicación">
+        <span class="loc-icon">📍</span>
+        <span>Santiago</span>
+      </button>
+      <a href="#" class="header-link">Ingresa</a>
+      <a href="#" class="header-link highlight">Crea tu cuenta</a>
+      <a href="#" class="header-link">Vende</a>
+      <a href="carrito.html" class="header-link cart-btn" aria-label="Ver carrito">
+        🛒
+        <span class="cart-count hidden" aria-live="polite">0</span>
+      </a>
+    </div>
+
+  </div>
+</header>
+
+<!-- ===== SECONDARY NAV ===== -->
+<nav class="header-nav" aria-label="Categorías principales">
+  <div class="container">
+    <ul class="nav-list">
+      <li><a href="productos.html?cat=electronica">Electrónica</a></li>
+      <li><a href="productos.html?cat=ropa">Ropa</a></li>
+      <li><a href="productos.html?cat=hogar">Hogar</a></li>
+      <li><a href="productos.html?cat=deportes">Deportes</a></li>
+      <li><a href="productos.html?cat=automotriz">Automotriz</a></li>
+      <li><a href="productos.html?cat=juguetes">Juguetes</a></li>
+      <li><a href="productos.html?cat=inmuebles">Inmuebles</a></li>
+      <li><a href="productos.html?cat=servicios">Servicios</a></li>
+      <li><a href="#">Ofertas del día</a></li>
+      <li><a href="#">MV Supermercado</a></li>
+      <li><a href="#">Moda</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<main>
+
+  <!-- HERO CAROUSEL -->
+  <section class="hero" aria-label="Ofertas destacadas">
+    <div class="carousel" role="region" aria-roledescription="carrusel">
+      <div class="carousel-track">
+
+        <!-- Slide 1 -->
+        <div class="carousel-slide slide-1" aria-label="Slide 1 de 3">
+          <div class="slide-content">
+            <span class="badge">Oferta del día</span>
+            <h2>iPhone 15 Pro<br>¡Solo por hoy!</h2>
+            <p>Con envío gratis a todo Chile</p>
+            <div class="slide-price">$1.199.990</div>
+            <a href="producto.html" class="slide-btn">Ver oferta</a>
+          </div>
+          <img class="slide-image"
+               src="https://picsum.photos/seed/iphone15/400/420"
+               alt="iPhone 15 Pro" loading="eager">
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="carousel-slide slide-2" aria-label="Slide 2 de 3">
+          <div class="slide-content">
+            <span class="badge">Nuevo ingreso</span>
+            <h2>Smart TV 55"<br>Samsung QLED</h2>
+            <p>Hasta 24 cuotas sin interés</p>
+            <div class="slide-price">$599.990</div>
+            <a href="productos.html" class="slide-btn">Ver TVs</a>
+          </div>
+          <img class="slide-image"
+               src="https://picsum.photos/seed/smarttv/400/420"
+               alt="Smart TV Samsung" loading="lazy">
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="carousel-slide slide-3" aria-label="Slide 3 de 3">
+          <div class="slide-content">
+            <span class="badge">Cyber descuentos</span>
+            <h2>Notebooks HP<br>y Lenovo</h2>
+            <p>Hasta 40% de descuento esta semana</p>
+            <div class="slide-price">Desde $449.990</div>
+            <a href="productos.html" class="slide-btn">Ver notebooks</a>
+          </div>
+          <img class="slide-image"
+               src="https://picsum.photos/seed/notebook/400/420"
+               alt="Notebook HP" loading="lazy">
+        </div>
+
+      </div>
+
+      <button class="carousel-btn carousel-prev" aria-label="Slide anterior">‹</button>
+      <button class="carousel-btn carousel-next" aria-label="Siguiente slide">›</button>
+
+      <div class="carousel-dots" role="tablist" aria-label="Slides">
+        <button class="dot active" role="tab" aria-label="Slide 1" data-slide="0"></button>
+        <button class="dot" role="tab" aria-label="Slide 2" data-slide="1"></button>
+        <button class="dot" role="tab" aria-label="Slide 3" data-slide="2"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORÍAS -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">
+        Categorías destacadas
+        <a href="productos.html">Ver todas</a>
+      </h2>
+      <div class="categories-grid">
+        <a href="productos.html?cat=electronica" class="category-card">
+          <span class="category-icon">📱</span>
+          <span class="category-name">Electrónica</span>
+        </a>
+        <a href="productos.html?cat=ropa" class="category-card">
+          <span class="category-icon">👕</span>
+          <span class="category-name">Ropa y Moda</span>
+        </a>
+        <a href="productos.html?cat=hogar" class="category-card">
+          <span class="category-icon">🏠</span>
+          <span class="category-name">Hogar</span>
+        </a>
+        <a href="productos.html?cat=deportes" class="category-card">
+          <span class="category-icon">⚽</span>
+          <span class="category-name">Deportes</span>
+        </a>
+        <a href="productos.html?cat=automotriz" class="category-card">
+          <span class="category-icon">🚗</span>
+          <span class="category-name">Automotriz</span>
+        </a>
+        <a href="productos.html?cat=juguetes" class="category-card">
+          <span class="category-icon">🧸</span>
+          <span class="category-name">Juguetes</span>
+        </a>
+        <a href="productos.html?cat=inmuebles" class="category-card">
+          <span class="category-icon">🏢</span>
+          <span class="category-name">Inmuebles</span>
+        </a>
+        <a href="productos.html?cat=servicios" class="category-card">
+          <span class="category-icon">🔧</span>
+          <span class="category-name">Servicios</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- OFERTAS DEL DÍA -->
+  <section class="section" aria-labelledby="ofertas-title">
+    <div class="container">
+      <h2 class="section-title" id="ofertas-title">
+        Ofertas del día
+        <a href="productos.html">Ver todas las ofertas</a>
+      </h2>
+      <div class="products-grid">
+
+        <!-- Card 1 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/phone1/300/300" alt="Samsung Galaxy A54 5G" loading="lazy">
+              <span class="product-badge">-32%</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Samsung Galaxy A54 5G 128GB Awesome Black</h3>
+              <p class="product-original-price">$379.990</p>
+              <p class="product-price">$259.990</p>
+              <p class="product-discount">32% OFF</p>
+              <p class="product-installments">en 12x $21.666 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★★</span>
+                <span>(847)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/laptop2/300/300" alt="Notebook HP 15 Intel i5" loading="lazy">
+              <span class="product-badge hot">HOT</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Notebook HP 15 Intel Core i5 12va Gen 8GB RAM 512GB SSD</h3>
+              <p class="product-original-price">$699.990</p>
+              <p class="product-price">$499.990</p>
+              <p class="product-discount">28% OFF</p>
+              <p class="product-installments">en 24x $20.833 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★☆</span>
+                <span>(312)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/airpods3/300/300" alt="AirPods Pro 2da Generación" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Apple AirPods Pro (2da Generación) con MagSafe</h3>
+              <p class="product-original-price">$299.990</p>
+              <p class="product-price">$229.990</p>
+              <p class="product-discount">23% OFF</p>
+              <p class="product-installments">en 12x $19.166 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★★</span>
+                <span>(1.203)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/tv4/300/300" alt="Smart TV LG 50 pulgadas" loading="lazy">
+              <span class="product-badge new">NUEVO</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Smart TV LG 50" 4K UHD ThinQ AI WebOS 23</h3>
+              <p class="product-original-price">$649.990</p>
+              <p class="product-price">$479.990</p>
+              <p class="product-discount">26% OFF</p>
+              <p class="product-installments">en 24x $19.999 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★☆</span>
+                <span>(564)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/shoes5/300/300" alt="Zapatillas Nike Air Max 270" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Zapatillas Nike Air Max 270 Hombre Negro/Blanco</h3>
+              <p class="product-original-price">$119.990</p>
+              <p class="product-price">$84.990</p>
+              <p class="product-discount">29% OFF</p>
+              <p class="product-installments">en 6x $14.165 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★★</span>
+                <span>(2.109)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/fridge6/300/300" alt="Refrigerador Samsung No Frost" loading="lazy">
+              <span class="product-badge">-20%</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Refrigerador Samsung 427L No Frost Twin Cooling Plus Inox</h3>
+              <p class="product-original-price">$749.990</p>
+              <p class="product-price">$599.990</p>
+              <p class="product-discount">20% OFF</p>
+              <p class="product-installments">en 24x $24.999 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★☆</span>
+                <span>(389)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <!-- Card 7 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/ps5game7/300/300" alt="PlayStation 5 Sony" loading="lazy">
+              <span class="product-badge hot">HOT</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Sony PlayStation 5 825GB SSD Consola Standard Edition</h3>
+              <p class="product-price">$699.990</p>
+              <p class="product-discount">Precio de lista</p>
+              <p class="product-installments">en 24x $29.166 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★★</span>
+                <span>(4.521)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <!-- Card 8 -->
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/drone8/300/300" alt="DJI Mini 3 Pro Drone" loading="lazy">
+              <span class="product-badge new">NUEVO</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">DJI Mini 3 Pro Drone con cámara 4K HDR hasta 34 min vuelo</h3>
+              <p class="product-original-price">$1.099.990</p>
+              <p class="product-price">$899.990</p>
+              <p class="product-discount">18% OFF</p>
+              <p class="product-installments">en 24x $37.499 sin interés</p>
+              <p class="product-shipping">Envío gratis</p>
+              <div class="product-rating">
+                <span class="stars">★★★★★</span>
+                <span>(218)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MÁS VENDIDOS -->
+  <section class="section" aria-labelledby="masvendidos-title">
+    <div class="container">
+      <h2 class="section-title" id="masvendidos-title">
+        Más vendidos
+        <a href="productos.html">Ver todos</a>
+      </h2>
+      <div class="scroll-section">
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/bestA/240/240" alt="Audífonos Sony WH-1000XM5" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Audífonos Sony WH-1000XM5 Noise Cancelling</h3>
+              <p class="product-price">$259.990</p>
+              <p class="product-discount">15% OFF</p>
+              <p class="product-shipping">Envío gratis</p>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/bestB/240/240" alt="Silla Gamer RGB" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Silla Gamer Ergonómica Reclinable RGB LED</h3>
+              <p class="product-price">$149.990</p>
+              <p class="product-discount">22% OFF</p>
+              <p class="product-shipping">Envío gratis</p>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/bestC/240/240" alt="Aspiradora Robot" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Aspiradora Robot Xiaomi Mi Robot Vacuum S10</h3>
+              <p class="product-price">$299.990</p>
+              <p class="product-discount">10% OFF</p>
+              <p class="product-shipping">Envío gratis</p>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/bestD/240/240" alt="Cafetera Nespresso" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Cafetera Nespresso Vertuo Pop Env120 Roja</h3>
+              <p class="product-price">$89.990</p>
+              <p class="product-shipping">Envío gratis</p>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/bestE/240/240" alt="Monitor 27 pulgadas" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Monitor LG 27" 4K IPS UltraFine 144Hz DisplayHDR</h3>
+              <p class="product-original-price">$549.990</p>
+              <p class="product-price">$449.990</p>
+              <p class="product-discount">18% OFF</p>
+              <p class="product-shipping">Envío gratis</p>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/bestF/240/240" alt="Smartwatch Samsung" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Samsung Galaxy Watch 6 Classic 47mm Negro</h3>
+              <p class="product-original-price">$329.990</p>
+              <p class="product-price">$249.990</p>
+              <p class="product-discount">24% OFF</p>
+              <p class="product-shipping">Envío gratis</p>
+            </div>
+          </a>
+        </article>
+
+        <article class="product-card">
+          <a href="producto.html">
+            <div class="product-img-wrap">
+              <img src="https://picsum.photos/seed/bestG/240/240" alt="Tablet iPad 10ma Generación" loading="lazy">
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Apple iPad 10ma Gen 64GB Wi-Fi Azul</h3>
+              <p class="product-original-price">$599.990</p>
+              <p class="product-price">$489.990</p>
+              <p class="product-discount">18% OFF</p>
+              <p class="product-shipping">Envío gratis</p>
+            </div>
+          </a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="section">
+    <div class="container">
+      <div class="cta-banner">
+        <div class="cta-content">
+          <h2>Publicá gratis en TiendaMV</h2>
+          <p>Llega a millones de compradores en todo Chile. Sin comisiones en tu primera venta.</p>
+        </div>
+        <a href="#" class="cta-btn">Empezar a vender</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer role="contentinfo">
+  <div class="footer-top">
+    <div class="container">
+      <div class="footer-grid">
+
+        <div class="footer-col">
+          <h4>Sobre TiendaMV</h4>
+          <ul>
+            <li><a href="#">Acerca de nosotros</a></li>
+            <li><a href="#">Noticias</a></li>
+            <li><a href="#">Trabaja con nosotros</a></li>
+            <li><a href="#">Inversionistas</a></li>
+            <li><a href="#">Sustentabilidad</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Información</h4>
+          <ul>
+            <li><a href="#">Centro de ayuda</a></li>
+            <li><a href="#">Cómo comprar</a></li>
+            <li><a href="#">Cómo vender</a></li>
+            <li><a href="#">Costos y tarifas</a></li>
+            <li><a href="#">Resolver un problema</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Servicios</h4>
+          <ul>
+            <li><a href="#">TiendaMV Pago</a></li>
+            <li><a href="#">TiendaMV Envíos</a></li>
+            <li><a href="#">TiendaMV Crédito</a></li>
+            <li><a href="#">Publicidad</a></li>
+            <li><a href="#">Developers</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Mis compras</h4>
+          <ul>
+            <li><a href="#">Mis pedidos</a></li>
+            <li><a href="#">Mis publicaciones</a></li>
+            <li><a href="#">Mi cuenta</a></li>
+            <li><a href="#">Mis favoritos</a></li>
+            <li><a href="#">Historial de pagos</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Descarga la app</h4>
+          <div class="app-badges" style="flex-direction:column; gap:8px; margin-bottom:16px;">
+            <a href="#" class="app-badge">
+              <span class="store-icon">🍎</span>
+              <div class="store-text">
+                <small>Descarga en</small>
+                <strong>App Store</strong>
+              </div>
+            </a>
+            <a href="#" class="app-badge">
+              <span class="store-icon">▶</span>
+              <div class="store-text">
+                <small>Disponible en</small>
+                <strong>Google Play</strong>
+              </div>
+            </a>
+          </div>
+          <h4 style="margin-top:8px;">Síguenos</h4>
+          <div class="flex gap-8" style="margin-top:8px;">
+            <a href="#" style="font-size:20px;text-decoration:none;" title="Instagram">📸</a>
+            <a href="#" style="font-size:20px;text-decoration:none;" title="Facebook">👥</a>
+            <a href="#" style="font-size:20px;text-decoration:none;" title="Twitter/X">🐦</a>
+            <a href="#" style="font-size:20px;text-decoration:none;" title="YouTube">▶</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="footer-bottom">
+      <p>© 2025 TiendaMV S.A. — Todos los derechos reservados | <a href="#">Términos y condiciones</a> | <a href="#">Privacidad</a></p>
+      <div class="payment-logos">
+        <span class="payment-logo">VISA</span>
+        <span class="payment-logo">Mastercard</span>
+        <span class="payment-logo">Webpay</span>
+        <span class="payment-logo">Redcompra</span>
+        <span class="payment-logo">PayPal</span>
+        <span class="payment-logo">Khipu</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast-container"></div>
+<script src="js/main.js"></script>
+</body>
+</html>

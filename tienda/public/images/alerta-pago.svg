@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-labelledby="title desc">
+  <title id="title">Alerta de pago</title>
+  <desc id="desc">Icono de advertencia con triangulo rojo y signo de exclamacion negro.</desc>
+  <rect x="4" y="4" width="212" height="212" rx="18" fill="#ffffff"/>
+  <rect x="4" y="4" width="212" height="212" rx="18" fill="none" stroke="#e5e7eb" stroke-width="3"/>
+  <path d="M110 28 201 186H19L110 28Z" fill="#ffffff" stroke="#ef1010" stroke-width="14" stroke-linejoin="round"/>
+  <path d="M110 77c9 0 16 7 15 16l-8 55c-1 4-3 7-7 7s-6-3-7-7l-8-55c-1-9 6-16 15-16Z" fill="#050505"/>
+  <circle cx="110" cy="173" r="10" fill="#050505"/>
+</svg>

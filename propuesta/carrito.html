@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Carrito — TiendaMV</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23FFE600'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='20' font-weight='900' fill='%233483FA'>T</text></svg>">
+</head>
+<body>
+
+<!-- ===== MOBILE NAV ===== -->
+<div class="mobile-nav-overlay"></div>
+<nav class="mobile-nav">
+  <div class="mobile-nav-header">
+    <span class="logo">Tienda<span>MV</span></span>
+    <button class="mobile-nav-close">✕</button>
+  </div>
+  <div class="mobile-nav-user"><a href="#">Ingresa a tu cuenta</a><a href="#">Crea tu cuenta gratis</a></div>
+  <div class="mobile-nav-list">
+    <a href="#">Electrónica</a><a href="#">Ropa y Moda</a><a href="#">Hogar</a>
+    <a href="#">Deportes</a><a href="#">Automotriz</a>
+  </div>
+</nav>
+
+<!-- ===== HEADER ===== -->
+<header class="header-top">
+  <div class="container">
+    <button class="mobile-menu-btn">☰</button>
+    <a href="index.html" class="logo">Tienda<span>MV</span></a>
+    <form class="search-form" role="search" action="productos.html" method="get">
+      <select class="search-category" name="cat">
+        <option value="">Todas las categorías</option>
+        <option>Electrónica</option><option>Ropa y Moda</option>
+      </select>
+      <div class="search-input-wrap">
+        <input class="search-input" type="search" name="q" placeholder="Buscar productos, marcas y más…" autocomplete="off">
+        <div class="search-autocomplete"></div>
+      </div>
+      <button class="search-btn" type="submit">🔍</button>
+    </form>
+    <div class="header-actions">
+      <button class="location-btn">📍 <span>Santiago</span></button>
+      <a href="#" class="header-link">Ingresa</a>
+      <a href="#" class="header-link highlight">Crea tu cuenta</a>
+      <a href="#" class="header-link">Vende</a>
+      <a href="carrito.html" class="header-link cart-btn">🛒<span class="cart-count hidden">0</span></a>
+    </div>
+  </div>
+</header>
+
+<nav class="header-nav">
+  <div class="container">
+    <ul class="nav-list">
+      <li><a href="productos.html?cat=electronica">Electrónica</a></li>
+      <li><a href="productos.html?cat=ropa">Ropa</a></li>
+      <li><a href="productos.html?cat=hogar">Hogar</a></li>
+      <li><a href="productos.html?cat=deportes">Deportes</a></li>
+      <li><a href="productos.html?cat=automotriz">Automotriz</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="page-header">
+  <div class="container">
+    <p class="breadcrumb"><a href="index.html">Inicio</a><span>›</span>Mi carrito</p>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main class="container">
+  <div class="cart-layout">
+
+    <!-- ===== CART ITEMS ===== -->
+    <div class="cart-main">
+
+      <div class="cart-header">
+        <div>
+          <h1>Mi carrito</h1>
+          <p id="cart-item-count" style="font-size:14px; color:var(--text-muted); margin-top:4px;">Cargando…</p>
+        </div>
+        <a href="productos.html" style="font-size:13px; color:var(--blue);">Seguir comprando</a>
+      </div>
+
+      <!-- Items rendered by JS -->
+      <div class="cart-main-items" id="cart-items-container"></div>
+
+      <!-- Empty state -->
+      <div class="empty-cart hidden" id="empty-cart-state">
+        <div class="empty-icon">🛒</div>
+        <h2>Tu carrito está vacío</h2>
+        <p>¡Explora nuestros productos y encuentra lo que buscas!</p>
+        <a href="index.html">Empezar a comprar</a>
+      </div>
+
+      <!-- Coupon -->
+      <div style="background:var(--white); border-radius:var(--radius-lg); padding:16px 20px; box-shadow:var(--shadow);" id="coupon-section">
+        <div class="coupon-box">
+          <h4>¿Tenés un cupón de descuento?</h4>
+          <div class="coupon-input-row">
+            <input type="text" class="coupon-input" placeholder="Ingresa tu código" style="text-transform:uppercase;">
+            <button class="coupon-btn">Aplicar</button>
+          </div>
+          <p style="font-size:11px; color:var(--text-muted); margin-top:6px;">Prueba: DESCUENTO10 · TIENDAMV · BIENVENIDO</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== ORDER SUMMARY ===== -->
+    <aside class="order-summary">
+      <h2>Resumen de compra</h2>
+
+      <div class="summary-row">
+        <span>Productos (<span id="summary-items">0</span>)</span>
+        <span id="summary-subtotal">$0</span>
+      </div>
+      <div class="summary-row">
+        <span>Envío</span>
+        <span id="summary-shipping" class="text-green">Gratis</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total</span>
+        <span id="summary-total">$0</span>
+      </div>
+
+      <p class="summary-savings" id="summary-savings"></p>
+
+      <button class="checkout-btn">Continuar compra</button>
+
+      <div class="secure-badge">
+        🔒 Compra protegida por TiendaMV
+      </div>
+
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+        <p style="font-size:12px; font-weight:600; margin-bottom:10px; color:var(--text);">Aceptamos</p>
+        <div class="payment-logos" style="flex-wrap:wrap; gap:6px;">
+          <span class="payment-logo">VISA</span>
+          <span class="payment-logo">Mastercard</span>
+          <span class="payment-logo">Webpay</span>
+          <span class="payment-logo">Redcompra</span>
+          <span class="payment-logo">PayPal</span>
+          <span class="payment-logo">Khipu</span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; font-size:12px; color:var(--text-muted); line-height:1.6;">
+        <p>✓ Garantía en tu compra</p>
+        <p>✓ Devolución gratis en 30 días</p>
+        <p>✓ Envío a todo Chile</p>
+      </div>
+    </aside>
+
+  </div><!-- end .cart-layout -->
+
+  <!-- ===== RECOMMENDED SECTION ===== -->
+  <section class="section" id="recommended-section">
+    <h2 class="section-title">
+      También te puede interesar
+      <a href="productos.html">Ver más</a>
+    </h2>
+    <div class="scroll-section">
+
+      <article class="product-card">
+        <a href="producto.html">
+          <div class="product-img-wrap"><img src="https://picsum.photos/seed/rec1/240/240" alt="AirPods Pro 2" loading="lazy"></div>
+          <div class="product-info">
+            <h3 class="product-title">Apple AirPods Pro (2da Gen) con MagSafe</h3>
+            <p class="product-price">$229.990</p>
+            <p class="product-discount">23% OFF</p>
+            <p class="product-shipping">Envío gratis</p>
+          </div>
+        </a>
+      </article>
+
+      <article class="product-card">
+        <a href="producto.html">
+          <div class="product-img-wrap"><img src="https://picsum.photos/seed/rec2/240/240" alt="Funda iPhone 15 Pro" loading="lazy"></div>
+          <div class="product-info">
+            <h3 class="product-title">Funda MagSafe Apple iPhone 15 Pro Transparente</h3>
+            <p class="product-price">$34.990</p>
+            <p class="product-shipping">Envío gratis</p>
+          </div>
+        </a>
+      </article>
+
+      <article class="product-card">
+        <a href="producto.html">
+          <div class="product-img-wrap"><img src="https://picsum.photos/seed/rec3/240/240" alt="Vidrio templado" loading="lazy"></div>
+          <div class="product-info">
+            <h3 class="product-title">Pack 3 Vidrios Templados Samsung Galaxy S24 Ultra</h3>
+            <p class="product-price">$9.990</p>
+            <p class="product-shipping">Envío gratis</p>
+          </div>
+        </a>
+      </article>
+
+      <article class="product-card">
+        <a href="producto.html">
+          <div class="product-img-wrap"><img src="https://picsum.photos/seed/rec4/240/240" alt="Samsung Galaxy Watch 6" loading="lazy"></div>
+          <div class="product-info">
+            <h3 class="product-title">Samsung Galaxy Watch 6 Classic 47mm</h3>
+            <p class="product-price">$249.990</p>
+            <p class="product-discount">24% OFF</p>
+            <p class="product-shipping">Envío gratis</p>
+          </div>
+        </a>
+      </article>
+
+      <article class="product-card">
+        <a href="producto.html">
+          <div class="product-img-wrap"><img src="https://picsum.photos/seed/rec5/240/240" alt="Cargador inalámbrico" loading="lazy"></div>
+          <div class="product-info">
+            <h3 class="product-title">Cargador Inalámbrico Samsung 15W Fast Wireless</h3>
+            <p class="product-price">$29.990</p>
+            <p class="product-shipping">Envío gratis</p>
+          </div>
+        </a>
+      </article>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-top">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col"><h4>Sobre TiendaMV</h4><ul><li><a href="#">Acerca de nosotros</a></li><li><a href="#">Trabaja con nosotros</a></li></ul></div>
+        <div class="footer-col"><h4>Información</h4><ul><li><a href="#">Centro de ayuda</a></li><li><a href="#">Cómo comprar</a></li></ul></div>
+        <div class="footer-col"><h4>Servicios</h4><ul><li><a href="#">TiendaMV Pago</a></li><li><a href="#">TiendaMV Envíos</a></li></ul></div>
+        <div class="footer-col"><h4>Mi cuenta</h4><ul><li><a href="#">Mis pedidos</a></li><li><a href="#">Mis publicaciones</a></li></ul></div>
+        <div class="footer-col">
+          <h4>Descarga la app</h4>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="#" class="app-badge"><span class="store-icon">🍎</span><div class="store-text"><small>Descarga en</small><strong>App Store</strong></div></a>
+            <a href="#" class="app-badge"><span class="store-icon">▶</span><div class="store-text"><small>Disponible en</small><strong>Google Play</strong></div></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="footer-bottom">
+      <p>© 2025 TiendaMV S.A. — <a href="#">Términos y condiciones</a> | <a href="#">Privacidad</a></p>
+      <div class="payment-logos">
+        <span class="payment-logo">VISA</span><span class="payment-logo">Mastercard</span>
+        <span class="payment-logo">Webpay</span><span class="payment-logo">Redcompra</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast-container"></div>
+<script src="js/main.js"></script>
+<script>
+  // Update cart item count text once cart loads
+  document.addEventListener('DOMContentLoaded', () => {
+    const countEl = document.getElementById('cart-item-count');
+    const emptyEl = document.getElementById('empty-cart-state');
+    if (!countEl) return;
+
+    const items = JSON.parse(localStorage.getItem('tiendaMV_cart') || '[]');
+    const total = items.reduce((s, i) => s + (i.qty || 1), 0);
+
+    if (total === 0) {
+      countEl.textContent = 'Tu carrito está vacío';
+      if (emptyEl) emptyEl.classList.remove('hidden');
+    } else {
+      countEl.textContent = `${total} producto${total !== 1 ? 's' : ''} en tu carrito`;
+    }
+  });
+</script>
+</body>
+</html>
