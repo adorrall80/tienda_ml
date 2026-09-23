@@ -95,17 +95,21 @@ class ProductsController extends Controller
             return response()->view('errors.404', [], 404);
         }
 
-        $isPublic = $producto->activo
-            && $producto->estado_publicacion_id === Product::PUBLICACION_ACTIVO
-            && $producto->estado_revision_id === Product::REVISION_APROBADO
-            && ! $producto->bloqueado
-            && (bool) $producto->tienda?->activa;
-
         $user = auth()->user();
         $canPreviewPrivate = $user && (
             (method_exists($user, 'hasRole') && $user->hasRole('admin'))
             || (int) $producto->tienda?->user_id === (int) $user->id
         );
+
+        if ($producto->bloqueado && ! $canPreviewPrivate) {
+            return response()->view('shop.producto-bloqueado', ['producto' => $producto], 403);
+        }
+
+        $isPublic = $producto->activo
+            && $producto->estado_publicacion_id === Product::PUBLICACION_ACTIVO
+            && $producto->estado_revision_id === Product::REVISION_APROBADO
+            && ! $producto->bloqueado
+            && (bool) $producto->tienda?->activa;
 
         if (! $isPublic && ! $canPreviewPrivate) {
             return response()->view('errors.404', [], 404);

@@ -114,7 +114,17 @@ class CheckoutController extends Controller
                     'total' => $unitPrice * $qty,
                 ]);
 
-                $product->decrement('stock', $qty);
+                \App\Models\Product::withoutEvents(function () use ($product, $qty) {
+                    $product->decrement('stock', $qty);
+                });
+
+                $product->stockMovements()->create([
+                    'user_id' => $request->user()->id,
+                    'order_id' => $order->id,
+                    'tipo' => 'venta',
+                    'cantidad' => -$qty,
+                    'notas' => 'Compra realizada',
+                ]);
             }
 
             return $order;

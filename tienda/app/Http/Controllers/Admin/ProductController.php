@@ -251,6 +251,12 @@ class ProductController extends Controller
         return view('admin.productos.edit', compact('producto', 'categorias', 'tiendas', 'deliveryTypes', 'productConditions'));
     }
 
+    public function kardex(Product $producto)
+    {
+        $movements = $producto->stockMovements()->with(['user', 'order'])->oldest()->get();
+        return view('components.kardex-table', compact('producto', 'movements'));
+    }
+
     public function preview(Product $producto)
     {
         $producto->load(['tags', 'category', 'images', 'tienda', 'productAttributes', 'deliveryTypes', 'productCondition']);

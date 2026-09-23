@@ -137,6 +137,38 @@ class Order extends Model
 
         $this->update(['estado' => $newStatus]);
 
+        if ($newStatus === 'cancelado' && $oldStatus !== 'cancelado') {
+            foreach ($this->items as $item) {
+                if ($item->product) {
+                    \App\Models\Product::withoutEvents(function () use ($item) {
+                        $item->product->increment('stock', $item->cantidad);
+                    });
+                    $item->product->stockMovements()->create([
+                        'user_id' => $user->id,
+                        'order_id' => $this->id,
+                        'tipo' => 'cancelacion',
+                        'cantidad' => $item->cantidad,
+                        'notas' => 'Pedido cancelado',
+                    ]);
+                }
+            }
+        } elseif ($oldStatus === 'cancelado' && $newStatus !== 'cancelado') {
+            foreach ($this->items as $item) {
+                if ($item->product) {
+                    \App\Models\Product::withoutEvents(function () use ($item) {
+                        $item->product->decrement('stock', $item->cantidad);
+                    });
+                    $item->product->stockMovements()->create([
+                        'user_id' => $user->id,
+                        'order_id' => $this->id,
+                        'tipo' => 'reversion_cancelacion',
+                        'cantidad' => -$item->cantidad,
+                        'notas' => "Cancelacion revertida (nuevo estado: $newStatus)",
+                    ]);
+                }
+            }
+        }
+
         $this->statusHistories()->create([
             'user_id' => $user->id,
             'actor' => $actor,
