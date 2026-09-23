@@ -18,7 +18,7 @@ const safeHttpUrl = value => {
 const clearNode = node => { if (node) node.replaceChildren(); };
 
 /* ── Toast ── */
-function showToast(msg, type = 'success', dur = 3000) {
+window.showToast = function showToast(msg, type = 'success', dur = 3000) {
   let container = $('.toast-container');
   if (!container) {
     container = document.createElement('div');

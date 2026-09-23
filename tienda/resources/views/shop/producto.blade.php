@@ -82,6 +82,21 @@
                     @endif
                 </div>
 
+                {{-- Report Button --}}
+                <div style="background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    @auth
+                        <a href="javascript:void(0);" onclick="document.getElementById('report-modal').showModal();" style="display: inline-flex; align-items: center; gap: 8px; color: #4b5563; font-size: 0.95rem; font-weight: 500; text-decoration: none;">
+                            <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                            Denunciar esta publicación
+                        </a>
+                    @else
+                        <a href="javascript:void(0);" onclick="requireLogin('{{ route('login.intended', ['to' => url()->current()]) }}')" style="display: inline-flex; align-items: center; gap: 8px; color: #4b5563; font-size: 0.95rem; font-weight: 500; text-decoration: none;">
+                            <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                            Denunciar esta publicación
+                        </a>
+                    @endauth
+                </div>
+
                 {{-- Info --}}
                 <p class="detail-condition">
                     @if($producto->estado_id)
@@ -94,11 +109,148 @@
                         Publicado: {{ $producto->fecha_publicacion->format('d/m/Y') }} |
                     @endif
                     {{ number_format($producto->visitas, 0, ',', '.') }} visitas |
-                    {{ number_format($producto->favorites_count, 0, ',', '.') }} favoritos |
-                    <a href="#">Reportar</a>
+                    {{ number_format($producto->favorites_count, 0, ',', '.') }} favoritos
                 </p>
 
-                <h1 class="detail-title">{{ $producto->nombre }}</h1>
+                @auth
+                <dialog id="report-modal" style="padding: 24px; border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; font-size: 1.25rem;">Reportar Producto</h2>
+                        <button onclick="document.getElementById('report-modal').close();" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+                    </div>
+                    <form id="report-form" method="POST" action="{{ route('productos.reportar', $producto) }}">
+                        @csrf
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Motivo</label>
+                            <select name="report_reason_id" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="">Selecciona un motivo...</option>
+                                @foreach(\App\Models\ReportReason::activos()->get() as $reason)
+                                    <option value="{{ $reason->id }}">{{ $reason->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Comentarios (opcional)</label>
+                            <textarea name="comentarios" rows="3" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; resize: vertical;" placeholder="Danos más detalles..."></textarea>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                            <button type="button" onclick="document.getElementById('report-modal').close();" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Cancelar</button>
+                            <button type="submit" style="padding: 8px 16px; border: none; background: #e02424; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Enviar Reporte</button>
+                        </div>
+                    </form>
+                </dialog>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const form = document.getElementById('report-form');
+                        if (form) {
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                const url = form.getAttribute('action');
+                                const formData = new FormData(form);
+                                
+                                fetch(url, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    document.getElementById('report-modal').close();
+                                    if (typeof window.showToast === 'function') {
+                                        window.showToast(data.message || 'Reporte enviado', 'success');
+                                    } else {
+                                        alert(data.message || 'Reporte enviado');
+                                    }
+                                    form.reset();
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    if (typeof window.showToast === 'function') {
+                                        window.showToast('Error al enviar reporte', 'error');
+                                    }
+                                });
+                            });
+                        }
+                    });
+                </script>
+                @endauth
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                    <h1 class="detail-title" style="margin: 0;">{{ $producto->nombre }}</h1>
+                    
+                    <div>
+                        @auth
+                            <form id="favorite-form" method="POST" action="{{ route('productos.favorito', $producto) }}">
+                                @csrf
+                                <button id="favorite-btn" type="submit" class="btn-favorite {{ $isFavorited ? 'active' : '' }}" style="background: none; border: none; cursor: pointer; padding: 5px; color: {{ $isFavorited ? '#e02424' : '#9ca3af' }};" title="{{ $isFavorited ? 'Quitar de favoritos' : 'Guardar favorito' }}">
+                                    <svg id="favorite-icon" width="28" height="28" fill="{{ $isFavorited ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                </button>
+                            </form>
+                        @else
+                            <a href="javascript:void(0);" onclick="requireLogin('{{ route('login.intended', ['to' => url()->current()]) }}')" style="color: #9ca3af; text-decoration: none; display: inline-block; padding: 5px;" title="Ingresa para guardar favorito">
+                                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                            </a>
+                        @endauth
+                    </div>
+                </div>
+
+                <div id="favorite-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); color: white; padding: 20px 40px; border-radius: 8px; z-index: 10000; font-size: 18px; font-weight: bold; text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.2s ease;">
+                    Producto guardado en favoritos
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const form = document.getElementById('favorite-form');
+                        if (form) {
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                const url = form.getAttribute('action');
+                                const formData = new FormData(form);
+                                
+                                fetch(url, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    const btn = document.getElementById('favorite-btn');
+                                    const icon = document.getElementById('favorite-icon');
+                                    const modal = document.getElementById('favorite-modal');
+                                    
+                                    if (data.status === 'added') {
+                                        btn.style.color = '#e02424';
+                                        icon.setAttribute('fill', 'currentColor');
+                                        modal.innerText = 'Producto guardado en favoritos';
+                                    } else {
+                                        btn.style.color = '#9ca3af';
+                                        icon.setAttribute('fill', 'none');
+                                        modal.innerText = 'Producto quitado de favoritos';
+                                    }
+                                    
+                                    modal.style.display = 'block';
+                                    // Trigger reflow for transition
+                                    void modal.offsetWidth;
+                                    modal.style.opacity = '1';
+                                    
+                                    setTimeout(() => {
+                                        modal.style.opacity = '0';
+                                        setTimeout(() => {
+                                            modal.style.display = 'none';
+                                        }, 200);
+                                    }, 1000);
+                                })
+                                .catch(error => console.error('Error:', error));
+                            });
+                        }
+                    });
+                </script>
 
                 <div class="detail-rating">
                     <span class="stars">{{ $stars }}</span>
@@ -190,19 +342,7 @@
                         </button>
                     </div>
                 @endif
-                <div class="favorite-action-wrap">
-                    @auth
-                        <form method="POST" action="{{ route('productos.favorito', $producto) }}">
-                            @csrf
-                            <button type="submit" class="btn-favorite {{ $isFavorited ? 'active' : '' }}">
-                                {{ $isFavorited ? 'Quitar de favoritos' : 'Guardar favorito' }}
-                            </button>
-                        </form>
-                    @else
-                        <a href="{{ route('login') }}" class="btn-favorite">Ingresa para guardar favorito</a>
-                    @endauth
-                    <span>{{ number_format($producto->favorites_count, 0, ',', '.') }} {{ $producto->favorites_count === 1 ? 'persona lo guardó' : 'personas lo guardaron' }}</span>
-                </div>
+
 
                 {{-- Mobile: vendedor y coordinacion --}}
                 <div class="mobile-seller-payment">
@@ -525,5 +665,48 @@
         </button>
     @endif
 </div>
+
+<script>
+    function requireLogin(url) {
+        // Create the centered modal overlay
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '50%';
+        modal.style.left = '50%';
+        modal.style.transform = 'translate(-50%, -50%)';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+        modal.style.color = 'white';
+        modal.style.padding = '24px 40px';
+        modal.style.borderRadius = '12px';
+        modal.style.zIndex = '10000';
+        modal.style.fontSize = '18px';
+        modal.style.fontWeight = 'bold';
+        modal.style.textAlign = 'center';
+        modal.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 0.3s ease';
+        
+        modal.innerHTML = `
+            <div style="margin-bottom: 12px;">
+                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto; display: block;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            Debes iniciar sesión para realizar esta acción.<br>
+            <span style="font-size: 14px; font-weight: normal; color: #9ca3af; margin-top: 8px; display: block;">Redirigiendo al login...</span>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Trigger reflow and show
+        void modal.offsetWidth;
+        modal.style.opacity = '1';
+        
+        // Redirect after delay
+        setTimeout(() => {
+            window.location.href = url;
+        }, 1800);
+    }
+</script>
 
 </x-layouts.shop>

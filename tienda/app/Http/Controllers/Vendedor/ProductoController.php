@@ -274,6 +274,15 @@ class ProductoController extends Controller
         ]);
     }
 
+    public function kardex(Request $request, Product $producto)
+    {
+        $tienda = $this->tienda($request);
+        abort_unless($this->ownsProduct($tienda, $producto), 403);
+
+        $movements = $producto->stockMovements()->with(['user', 'order'])->oldest()->get();
+        return view('components.kardex-table', compact('producto', 'movements'));
+    }
+
     public function preview(Request $request, Product $producto)
     {
         $tienda = $this->tienda($request);

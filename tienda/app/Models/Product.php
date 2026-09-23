@@ -155,6 +155,11 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->orderBy('orden');
     }
 
+    public function stockMovements()
+    {
+        return $this->hasMany(ProductStockMovement::class);
+    }
+
     public function tienda()
     {
         return $this->belongsTo(Tienda::class);

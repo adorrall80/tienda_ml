@@ -25,5 +25,22 @@
 
 <div class="toast-container"></div>
 
+@if(session('success') || session('error'))
+<script>
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            if (typeof window.showToast === 'function') {
+                @if(session('success'))
+                window.showToast("{{ session('success') }}", 'success');
+                @endif
+                @if(session('error'))
+                window.showToast("{{ session('error') }}", 'error');
+                @endif
+            }
+        }, 300);
+    });
+</script>
+@endif
+
 </body>
 </html>

@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class ProductFavoriteController extends Controller
 {
-    public function toggle(Request $request, Product $producto): RedirectResponse
+    public function toggle(Request $request, Product $producto)
     {
         abort_unless(
             $producto->activo
@@ -26,6 +26,9 @@ class ProductFavoriteController extends Controller
         if ($favorite) {
             $favorite->delete();
 
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'removed', 'message' => 'Producto quitado de favoritos.']);
+            }
             return back()->with('success', 'Producto quitado de favoritos.');
         }
 
@@ -33,6 +36,9 @@ class ProductFavoriteController extends Controller
             'product_id' => $producto->id,
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['status' => 'added', 'message' => 'Producto guardado en favoritos.']);
+        }
         return back()->with('success', 'Producto guardado en favoritos.');
     }
 }

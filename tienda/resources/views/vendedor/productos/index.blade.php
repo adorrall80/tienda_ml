@@ -44,7 +44,6 @@
                                 @if($p->bloqueado)
                                     <span class="badge badge-danger">Bloqueado</span>
                                 @endif
-                                <small class="text-muted">{{ $p->slug }}</small>
                                 @if($p->fecha_publicacion)
                                     <small class="text-muted">Publicado {{ $p->fecha_publicacion->format('d/m/Y') }}</small>
                                 @endif
@@ -95,6 +94,9 @@
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 </a>
                             @endif
+                            <a href="{{ route('vendedor.productos.kardex', $p) }}" class="btn-icon btn-icon-view js-kardex-btn" title="Ver Historial de Stock">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                            </a>
                             <a href="{{ route('vendedor.productos.preview', $p) }}" class="btn-icon btn-icon-view" title="Ver vista previa">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </a>
@@ -119,4 +121,30 @@
         </div>
         @endif
     </div>
+
+    <dialog id="kardexModal" class="p-card" style="padding: 20px; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 800px; margin-top: 5vh; margin-bottom: auto;">
+        <div id="kardexModalContent">Cargando...</div>
+    </dialog>
+
+    <script>
+        document.querySelectorAll('.js-kardex-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                const modal = document.getElementById('kardexModal');
+                const content = document.getElementById('kardexModalContent');
+                content.innerHTML = 'Cargando historial...';
+                modal.showModal();
+                
+                fetch(url)
+                    .then(res => res.text())
+                    .then(html => {
+                        content.innerHTML = html;
+                    })
+                    .catch(err => {
+                        content.innerHTML = 'Error al cargar el historial.';
+                    });
+            });
+        });
+    </script>
 </x-layouts.panel>

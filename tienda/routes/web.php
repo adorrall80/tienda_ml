@@ -23,6 +23,11 @@ use Illuminate\Support\Facades\Route;
 
 // ── Tienda pública ────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('inicio');
+Route::get('/login/intended', function (\Illuminate\Http\Request $request) {
+    session()->put('url.intended', $request->query('to'));
+    return redirect()->route('login');
+})->name('login.intended');
+
 Route::get('/productos', [ProductsController::class, 'index'])->name('productos.index');
 Route::get('/productos/{slug}', [ProductsController::class, 'show'])->name('productos.show');
 Route::view('/carrito', 'shop.carrito')->name('carrito.index');
@@ -32,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/checkout/{order}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmacion');
     Route::post('/productos/{producto}/favorito', [ProductFavoriteController::class, 'toggle'])->name('productos.favorito');
+    Route::post('/productos/{producto}/reportar', [\App\Http\Controllers\Shop\ProductReportController::class, 'store'])->name('productos.reportar');
 });
 Route::get('/buscar/sugerencias', SearchSuggestionsController::class)
     ->middleware('throttle:60,1')
@@ -64,6 +70,7 @@ Route::middleware(['auth', 'vendedor'])->prefix('mi-tienda')->name('vendedor.')-
     Route::get('/productos/crear', [VendedorProducto::class, 'create'])->name('productos.create');
     Route::post('/productos', [VendedorProducto::class, 'store'])->name('productos.store');
     Route::get('/productos/{producto}/editar', [VendedorProducto::class, 'edit'])->name('productos.edit');
+    Route::get('/productos/{producto}/kardex', [VendedorProducto::class, 'kardex'])->name('productos.kardex');
     Route::get('/productos/{producto}/vista-previa', [VendedorProducto::class, 'preview'])->name('productos.preview');
     Route::get('/productos/{producto}/estado-revision', [VendedorProducto::class, 'reviewStatus'])->name('productos.estado-revision');
     Route::put('/productos/{producto}', [VendedorProducto::class, 'update'])->name('productos.update');
@@ -93,6 +100,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/productos/crear', [AdminProduct::class, 'create'])->name('productos.create');
     Route::post('/productos', [AdminProduct::class, 'store'])->name('productos.store');
     Route::get('/productos/{producto}/editar', [AdminProduct::class, 'edit'])->name('productos.edit');
+    Route::get('/productos/{producto}/kardex', [AdminProduct::class, 'kardex'])->name('productos.kardex');
     Route::get('/productos/{producto}/vista-previa', [AdminProduct::class, 'preview'])->name('productos.preview');
     Route::put('/productos/{producto}', [AdminProduct::class, 'update'])->name('productos.update');
     Route::delete('/productos/{producto}', [AdminProduct::class, 'destroy'])->name('productos.destroy');
@@ -112,12 +120,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/pedidos/{order}/notas', [AdminOrder::class, 'storeNote'])->name('pedidos.notas');
 
     // Seguridad
+    Route::get('/reportes', [\App\Http\Controllers\Admin\ProductReportController::class, 'index'])->name('reportes.index');
+    Route::post('/reportes/{report}/block', [\App\Http\Controllers\Admin\ProductReportController::class, 'blockProduct'])->name('reportes.block');
+    Route::post('/reportes/{report}/dismiss', [\App\Http\Controllers\Admin\ProductReportController::class, 'dismiss'])->name('reportes.dismiss');
+
     Route::get('/seguridad/palabras-bloqueadas', [AdminSecurityTerm::class, 'index'])->name('seguridad.palabras.index');
     Route::post('/seguridad/palabras-bloqueadas', [AdminSecurityTerm::class, 'store'])->name('seguridad.palabras.store');
     Route::put('/seguridad/palabras-bloqueadas/{term}', [AdminSecurityTerm::class, 'update'])->name('seguridad.palabras.update');
     Route::delete('/seguridad/palabras-bloqueadas/{term}', [AdminSecurityTerm::class, 'destroy'])->name('seguridad.palabras.destroy');
 
     // Mantenedores
+    Route::get('/mantenedores/motivos-reporte', [\App\Http\Controllers\Admin\ReportReasonController::class, 'index'])->name('mantenedores.motivos-reporte.index');
+    Route::post('/mantenedores/motivos-reporte', [\App\Http\Controllers\Admin\ReportReasonController::class, 'store'])->name('mantenedores.motivos-reporte.store');
+    Route::put('/mantenedores/motivos-reporte/{reason}', [\App\Http\Controllers\Admin\ReportReasonController::class, 'update'])->name('mantenedores.motivos-reporte.update');
+    Route::delete('/mantenedores/motivos-reporte/{reason}', [\App\Http\Controllers\Admin\ReportReasonController::class, 'destroy'])->name('mantenedores.motivos-reporte.destroy');
+
     Route::get('/mantenedores/estados-producto', [AdminProductCondition::class, 'index'])->name('mantenedores.estados-producto.index');
     Route::post('/mantenedores/estados-producto', [AdminProductCondition::class, 'store'])->name('mantenedores.estados-producto.store');
     Route::put('/mantenedores/estados-producto/{condition}', [AdminProductCondition::class, 'update'])->name('mantenedores.estados-producto.update');
