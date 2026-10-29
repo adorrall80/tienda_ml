@@ -10,24 +10,24 @@ class RoleRedirectTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_is_redirected_to_admin_dashboard(): void
+    public function test_admin_is_redirected_to_inicio(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
 
         $this->actingAs($user)
             ->get('/redirect')
-            ->assertRedirect(route('admin.dashboard', absolute: false));
+            ->assertRedirect(route('inicio', absolute: false));
     }
 
-    public function test_vendedor_is_redirected_to_vendedor_panel(): void
+    public function test_vendedor_is_redirected_to_inicio(): void
     {
         $user = User::factory()->create();
         $user->assignRole('vendedor');
 
         $this->actingAs($user)
             ->get('/redirect')
-            ->assertRedirect(route('vendedor.panel', absolute: false));
+            ->assertRedirect(route('inicio', absolute: false));
     }
 
     public function test_cliente_is_redirected_to_public_home(): void
