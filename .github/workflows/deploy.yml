@@ -71,7 +71,7 @@ jobs:
           log-level: verbose
           dangerous-clean-slate: false
           local-dir: ./tienda/
-          server-dir: ./public_html/
+          server-dir: ./tienda.esremate.cl/
           exclude: |
             **/.git*
             **/.git*/**
