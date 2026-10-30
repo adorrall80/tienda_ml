@@ -28,3 +28,21 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+# Laravel app inside /tienda
+tienda/vendor/
+tienda/node_modules/
+tienda/public/build/
+tienda/public/hot
+tienda/public/storage
+tienda/storage/logs/*
+tienda/.env
+tienda/.phpunit.result.cache
+
+tienda/bootstrap/cache/*.php
+tienda/database/database.sqlite
+tienda/storage/framework/cache/**
+tienda/storage/framework/sessions/**
+tienda/storage/framework/testing/**
+tienda/storage/framework/views/**
+tienda/storage/app/public/products/**
+!tienda/storage/app/public/.gitignore

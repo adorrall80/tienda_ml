@@ -90,6 +90,10 @@ Route::middleware(['auth', 'vendedor'])->prefix('mi-tienda')->name('vendedor.')-
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboard::class, 'index'])->name('dashboard');
 
+    Route::resource('categorias', \App\Http\Controllers\Admin\CategoryController::class)
+        ->parameters(['categorias' => 'category'])
+        ->only(['index', 'create', 'store', 'edit', 'update']);
+
     // Usuarios
     Route::get('/usuarios', [AdminUser::class, 'index'])->name('usuarios.index');
     Route::put('/usuarios/{user}', [AdminUser::class, 'update'])->name('usuarios.update');
